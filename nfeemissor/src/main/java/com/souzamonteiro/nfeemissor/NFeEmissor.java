@@ -9,6 +9,7 @@ package com.souzamonteiro.nfeemissor;
 import br.com.swconsultoria.nfe.dom.ConfiguracoesNfe;
 import br.com.swconsultoria.nfe.dom.enuns.*;
 import br.com.swconsultoria.nfe.Nfe;
+import br.com.swconsultoria.nfe.schema_4.consStatServ.TRetConsStatServ;
 import br.com.swconsultoria.nfe.schema_4.consReciNFe.TRetConsReciNFe;
 import br.com.swconsultoria.nfe.schema_4.enviNFe.*;
 import br.com.swconsultoria.nfe.schema_4.enviNFe.TNFe.InfNFe;
@@ -312,7 +313,21 @@ public class NFeEmissor {
                 }
                 
                 infNFe.setDest(dest);
+                
+                // PREENCHE OS AUTORIZADOS A TER ACESSO AO XML
+                if (jsonInfNFe.has("autXML")) {
+                    JSONObject jsonAutXML = jsonInfNFe.getJSONObject("autXML");
 
+                    AutXML autXML = new AutXML();
+                    if (jsonAutXML.has("CPF")) {
+                        autXML.setCPF(jsonAutXML.get("CPF").toString());
+                    }
+                    if (jsonAutXML.has("CNPJ")) {
+                        autXML.setCNPJ(jsonAutXML.get("CNPJ").toString());
+                    }
+                    infNFe.getAutXML().add(autXML);
+                }
+                
                 // PREENCHE OS PRODUTOS
                 for (int i = 0; i < jsonDet.length(); i++) {
                     JSONObject itemDet = jsonDet.getJSONObject(i);
@@ -644,6 +659,27 @@ public class NFeEmissor {
     static class NFeStatusServicoHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
+            try {
+                // Inicia As Configurações
+                ConfiguracoesNfe config = Config.iniciaConfiguracoes();
+
+                try {
+                    //Efetua Consulta
+                    TRetConsStatServ retorno = Nfe.statusServico(config, DocumentoEnum.NFE);
+
+                    //Resultado
+                    System.out.println();
+                    System.out.println("# Status: " + retorno.getCStat() + " - " + retorno.getXMotivo());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.err.println("# Erro: " + e.getMessage());
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.err.println("# Erro: " + e.getMessage());
+            }
+            
             String response = "{\"cStat\":\"107\",\"xMotivo\":\"Serviço em Operação\"}";
             
             httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");

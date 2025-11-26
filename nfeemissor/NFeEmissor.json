@@ -5,7 +5,7 @@
     "webserviceAmbiente": 2,
     "caminhoSchemas": "/home/roberto/schemas/",
     "caminhoCertificado": "/home/roberto/certificados/certificado.pfx",
-    "senhaCertificado": "1234",
+    "senhaCertificado": "123456",
     "caminhoXML": "/home/roberto/xml",
     "gerarPDF": "1",
     "observacoes": "Arquivo de configuração para emissor de NF-e - Versão didática"
