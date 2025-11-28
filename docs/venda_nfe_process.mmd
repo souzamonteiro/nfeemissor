@@ -1,0 +1,11 @@
+graph TD
+    A[Início Venda] --> B[Selecionar Cliente]
+    B --> C[Adicionar Produtos]
+    C --> D[Calcular Totais]
+    D --> E[Construir JSON NF-e]
+    E --> F[Enviar para Serviço]
+    F --> G{Sucesso?}
+    G -->|Sim| H[Salvar Dados]
+    G -->|Não| I[Registrar Erro]
+    H --> J[Gerar PDF]
+    I --> K[Notificar Usuário]
