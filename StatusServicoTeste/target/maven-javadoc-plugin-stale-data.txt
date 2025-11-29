@@ -1,0 +1,107 @@
+-J-Duser.language=
+-J-Duser.country=
+@options
+@packages
+-classpath
+'/home/roberto/.m2/repository/br/com/swconsultoria/java_certificado/3.12/java_certificado-3.12.jar:/home/roberto/.m2/repository/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar:/home/roberto/.m2/repository/commons-codec/commons-codec/1.2/commons-codec-1.2.jar:/home/roberto/.m2/repository/br/com/swconsultoria/java-nfe/4.00.45/java-nfe-4.00.45.jar:/home/roberto/.m2/repository/org/apache/httpcomponents/httpcore/4.4.6/httpcore-4.4.6.jar:/home/roberto/.m2/repository/com/sun/xml/bind/jaxb-impl/2.3.1/jaxb-impl-2.3.1.jar:/home/roberto/.m2/repository/com/sun/xml/bind/jaxb-xjc/2.3.1/jaxb-xjc-2.3.1.jar:/home/roberto/.m2/repository/com/sun/xml/bind/jaxb-core/2.3.0.1/jaxb-core-2.3.0.1.jar:/home/roberto/.m2/repository/org/apache/axis2/axis2-kernel/1.7.5/axis2-kernel-1.7.5.jar:/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-ws-metadata_2.0_spec/1.1.2/geronimo-ws-metadata_2.0_spec-1.1.2.jar:/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-jta_1.1_spec/1.1/geronimo-jta_1.1_spec-1.1.jar:/home/roberto/.m2/repository/wsdl4j/wsdl4j/1.6.2/wsdl4j-1.6.2.jar:/home/roberto/.m2/repository/org/apache/ws/xmlschema/xmlschema-core/2.2.1/xmlschema-core-2.2.1.jar:/home/roberto/.m2/repository/org/apache/neethi/neethi/3.0.3/neethi-3.0.3.jar:/home/roberto/.m2/repository/org/apache/woden/woden-core/1.0M10/woden-core-1.0M10.jar:/home/roberto/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar:/home/roberto/.m2/repository/javax/ws/rs/jsr311-api/1.1.1/jsr311-api-1.1.1.jar:/home/roberto/.m2/repository/commons-io/commons-io/2.1/commons-io-2.1.jar:/home/roberto/.m2/repository/org/apache/axis2/axis2-adb/1.7.5/axis2-adb-1.7.5.jar:/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-activation_1.1_spec/1.0.2/geronimo-activation_1.1_spec-1.0.2.jar:/home/roberto/.m2/repository/org/apache/axis2/axis2-jaxws/1.7.5/axis2-jaxws-1.7.5.jar:/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-annotation_1.0_spec/1.1/geronimo-annotation_1.0_spec-1.1.jar:/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-jaxws_2.2_spec/1.0/geronimo-jaxws_2.2_spec-1.0.jar:/home/roberto/.m2/repository/org/apache/axis2/axis2-saaj/1.7.5/axis2-saaj-1.7.5.jar:/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-saaj_1.3_spec/1.0.1/geronimo-saaj_1.3_spec-1.0.1.jar:/home/roberto/.m2/repository/org/apache/axis2/axis2-metadata/1.7.5/axis2-metadata-1.7.5.jar:/home/roberto/.m2/repository/com/sun/xml/ws/jaxws-tools/2.1.3/jaxws-tools-2.1.3.jar:/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-javamail_1.4_spec/1.6/geronimo-javamail_1.4_spec-1.6.jar:/home/roberto/.m2/repository/xml-resolver/xml-resolver/1.2/xml-resolver-1.2.jar:/home/roberto/.m2/repository/xalan/xalan/2.7.0/xalan-2.7.0.jar:/home/roberto/.m2/repository/javax/xml/bind/jaxb-api/2.2.6/jaxb-api-2.2.6.jar:/home/roberto/.m2/repository/org/apache/axis2/axis2-transport-http/1.7.5/axis2-transport-http-1.7.5.jar:/home/roberto/.m2/repository/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar:/home/roberto/.m2/repository/org/apache/axis2/axis2-transport-local/1.7.5/axis2-transport-local-1.7.5.jar:/home/roberto/.m2/repository/org/apache/ws/commons/axiom/axiom-api/1.2.20/axiom-api-1.2.20.jar:/home/roberto/.m2/repository/jaxen/jaxen/1.1.6/jaxen-1.1.6.jar:/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1.jar:/home/roberto/.m2/repository/org/apache/james/apache-mime4j-core/0.7.2/apache-mime4j-core-0.7.2.jar:/home/roberto/.m2/repository/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar:/home/roberto/.m2/repository/net/sf/jasperreports/jasperreports/6.20.6/jasperreports-6.20.6.jar:/home/roberto/.m2/repository/commons-beanutils/commons-beanutils/1.9.4/commons-beanutils-1.9.4.jar:/home/roberto/.m2/repository/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar:/home/roberto/.m2/repository/commons-digester/commons-digester/2.1/commons-digester-2.1.jar:/home/roberto/.m2/repository/org/apache/commons/commons-collections4/4.2/commons-collections4-4.2.jar:/home/roberto/.m2/repository/com/github/librepdf/openpdf/1.3.30.jaspersoft.3/openpdf-1.3.30.jaspersoft.3.jar:/home/roberto/.m2/repository/org/jfree/jcommon/1.0.23/jcommon-1.0.23.jar:/home/roberto/.m2/repository/org/jfree/jfreechart/1.0.19/jfreechart-1.0.19.jar:/home/roberto/.m2/repository/org/eclipse/jdt/ecj/3.21.0/ecj-3.21.0.jar:/home/roberto/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.14.1/jackson-core-2.14.1.jar:/home/roberto/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.14.1/jackson-databind-2.14.1.jar:/home/roberto/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.14.1/jackson-annotations-2.14.1.jar:/home/roberto/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-xml/2.14.1/jackson-dataformat-xml-2.14.1.jar:/home/roberto/.m2/repository/com/fasterxml/woodstox/woodstox-core/6.4.0/woodstox-core-6.4.0.jar:/home/roberto/.m2/repository/net/sf/jasperreports/jasperreports-fonts/6.20.6/jasperreports-fonts-6.20.6.jar:/home/roberto/.m2/repository/net/sourceforge/barbecue/barbecue/1.5-beta1/barbecue-1.5-beta1.jar:/home/roberto/.m2/repository/com/google/zxing/core/3.2.1/core-3.2.1.jar:/home/roberto/.m2/repository/com/google/zxing/javase/3.2.1/javase-3.2.1.jar:/home/roberto/.m2/repository/com/beust/jcommander/1.48/jcommander-1.48.jar'
+-encoding
+'UTF-8'
+-protected
+-source
+'1.8'
+-sourcepath
+'/home/roberto/NetBeansProjects/StatusServicoTeste/src/main/java:/home/roberto/NetBeansProjects/StatusServicoTeste/target/generated-sources/annotations'
+-author
+-bottom
+'Copyright &#169; 2025. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'StatusServicoTeste 1.0-SNAPSHOT API'
+-linkoffline
+'https://docs.oracle.com/javase/8/docs/api' '/home/roberto/NetBeansProjects/StatusServicoTeste/target/javadoc-bundle-options'
+-use
+-version
+-windowtitle
+'StatusServicoTeste 1.0-SNAPSHOT API'
+com.souzamonteiro.statusservicoteste
+/home/roberto/.m2/repository/br/com/swconsultoria/java_certificado/3.12/java_certificado-3.12.jar = 1751811205000
+/home/roberto/.m2/repository/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar = 1187703847000
+/home/roberto/.m2/repository/commons-codec/commons-codec/1.2/commons-codec-1.2.jar = 1132682928000
+/home/roberto/.m2/repository/br/com/swconsultoria/java-nfe/4.00.45/java-nfe-4.00.45.jar = 1762694799000
+/home/roberto/.m2/repository/org/apache/httpcomponents/httpcore/4.4.6/httpcore-4.4.6.jar = 1483797006000
+/home/roberto/.m2/repository/com/sun/xml/bind/jaxb-impl/2.3.1/jaxb-impl-2.3.1.jar = 1536779748000
+/home/roberto/.m2/repository/com/sun/xml/bind/jaxb-xjc/2.3.1/jaxb-xjc-2.3.1.jar = 1536779781000
+/home/roberto/.m2/repository/com/sun/xml/bind/jaxb-core/2.3.0.1/jaxb-core-2.3.0.1.jar = 1526643864000
+/home/roberto/.m2/repository/org/apache/axis2/axis2-kernel/1.7.5/axis2-kernel-1.7.5.jar = 1494081765000
+/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-ws-metadata_2.0_spec/1.1.2/geronimo-ws-metadata_2.0_spec-1.1.2.jar = 1202347614000
+/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-jta_1.1_spec/1.1/geronimo-jta_1.1_spec-1.1.jar = 1176910831000
+/home/roberto/.m2/repository/wsdl4j/wsdl4j/1.6.2/wsdl4j-1.6.2.jar = 1212688434000
+/home/roberto/.m2/repository/org/apache/ws/xmlschema/xmlschema-core/2.2.1/xmlschema-core-2.2.1.jar = 1422480351000
+/home/roberto/.m2/repository/org/apache/neethi/neethi/3.0.3/neethi-3.0.3.jar = 1390335593000
+/home/roberto/.m2/repository/org/apache/woden/woden-core/1.0M10/woden-core-1.0M10.jar = 1441546087000
+/home/roberto/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar = 1742993661362
+/home/roberto/.m2/repository/javax/ws/rs/jsr311-api/1.1.1/jsr311-api-1.1.1.jar = 1257771365000
+/home/roberto/.m2/repository/commons-io/commons-io/2.1/commons-io-2.1.jar = 1317677556000
+/home/roberto/.m2/repository/org/apache/axis2/axis2-adb/1.7.5/axis2-adb-1.7.5.jar = 1494081793000
+/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-activation_1.1_spec/1.0.2/geronimo-activation_1.1_spec-1.0.2.jar = 1202347617000
+/home/roberto/.m2/repository/org/apache/axis2/axis2-jaxws/1.7.5/axis2-jaxws-1.7.5.jar = 1494082329000
+/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-annotation_1.0_spec/1.1/geronimo-annotation_1.0_spec-1.1.jar = 1176910639000
+/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-jaxws_2.2_spec/1.0/geronimo-jaxws_2.2_spec-1.0.jar = 1271936582000
+/home/roberto/.m2/repository/org/apache/axis2/axis2-saaj/1.7.5/axis2-saaj-1.7.5.jar = 1494082088000
+/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-saaj_1.3_spec/1.0.1/geronimo-saaj_1.3_spec-1.0.1.jar = 1224155302000
+/home/roberto/.m2/repository/org/apache/axis2/axis2-metadata/1.7.5/axis2-metadata-1.7.5.jar = 1494082170000
+/home/roberto/.m2/repository/com/sun/xml/ws/jaxws-tools/2.1.3/jaxws-tools-2.1.3.jar = 1223084382000
+/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-javamail_1.4_spec/1.6/geronimo-javamail_1.4_spec-1.6.jar = 1235384680000
+/home/roberto/.m2/repository/xml-resolver/xml-resolver/1.2/xml-resolver-1.2.jar = 1166794672000
+/home/roberto/.m2/repository/xalan/xalan/2.7.0/xalan-2.7.0.jar = 1132684070000
+/home/roberto/.m2/repository/javax/xml/bind/jaxb-api/2.2.6/jaxb-api-2.2.6.jar = 1322727618000
+/home/roberto/.m2/repository/org/apache/axis2/axis2-transport-http/1.7.5/axis2-transport-http-1.7.5.jar = 1494081915000
+/home/roberto/.m2/repository/org/apache/httpcomponents/httpclient/4.5.2/httpclient-4.5.2.jar = 1456070744000
+/home/roberto/.m2/repository/org/apache/axis2/axis2-transport-local/1.7.5/axis2-transport-local-1.7.5.jar = 1494081817000
+/home/roberto/.m2/repository/org/apache/ws/commons/axiom/axiom-api/1.2.20/axiom-api-1.2.20.jar = 1476638706000
+/home/roberto/.m2/repository/jaxen/jaxen/1.1.6/jaxen-1.1.6.jar = 1386986189000
+/home/roberto/.m2/repository/org/apache/geronimo/specs/geronimo-stax-api_1.0_spec/1.0.1/geronimo-stax-api_1.0_spec-1.0.1.jar = 1198763534000
+/home/roberto/.m2/repository/org/apache/james/apache-mime4j-core/0.7.2/apache-mime4j-core-0.7.2.jar = 1325945363000
+/home/roberto/.m2/repository/org/projectlombok/lombok/1.18.38/lombok-1.18.38.jar = 1743423692000
+/home/roberto/.m2/repository/net/sf/jasperreports/jasperreports/6.20.6/jasperreports-6.20.6.jar = 1694435000000
+/home/roberto/.m2/repository/commons-beanutils/commons-beanutils/1.9.4/commons-beanutils-1.9.4.jar = 1564352213000
+/home/roberto/.m2/repository/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar = 1447369876000
+/home/roberto/.m2/repository/commons-digester/commons-digester/2.1/commons-digester-2.1.jar = 1285326138000
+/home/roberto/.m2/repository/org/apache/commons/commons-collections4/4.2/commons-collections4-4.2.jar = 1531056488000
+/home/roberto/.m2/repository/com/github/librepdf/openpdf/1.3.30.jaspersoft.3/openpdf-1.3.30.jaspersoft.3.jar = 1694178371000
+/home/roberto/.m2/repository/org/jfree/jcommon/1.0.23/jcommon-1.0.23.jar = 1406216202000
+/home/roberto/.m2/repository/org/jfree/jfreechart/1.0.19/jfreechart-1.0.19.jar = 1406810085000
+/home/roberto/.m2/repository/org/eclipse/jdt/ecj/3.21.0/ecj-3.21.0.jar = 1585224181000
+/home/roberto/.m2/repository/com/fasterxml/jackson/core/jackson-core/2.14.1/jackson-core-2.14.1.jar = 1669073894000
+/home/roberto/.m2/repository/com/fasterxml/jackson/core/jackson-databind/2.14.1/jackson-databind-2.14.1.jar = 1669074192000
+/home/roberto/.m2/repository/com/fasterxml/jackson/core/jackson-annotations/2.14.1/jackson-annotations-2.14.1.jar = 1669073214000
+/home/roberto/.m2/repository/com/fasterxml/jackson/dataformat/jackson-dataformat-xml/2.14.1/jackson-dataformat-xml-2.14.1.jar = 1669076211000
+/home/roberto/.m2/repository/com/fasterxml/woodstox/woodstox-core/6.4.0/woodstox-core-6.4.0.jar = 1666655029000
+/home/roberto/.m2/repository/net/sf/jasperreports/jasperreports-fonts/6.20.6/jasperreports-fonts-6.20.6.jar = 1694434741000
+/home/roberto/.m2/repository/net/sourceforge/barbecue/barbecue/1.5-beta1/barbecue-1.5-beta1.jar = 1247093859000
+/home/roberto/.m2/repository/com/google/zxing/core/3.2.1/core-3.2.1.jar = 1439987859000
+/home/roberto/.m2/repository/com/google/zxing/javase/3.2.1/javase-3.2.1.jar = 1439987867000
+/home/roberto/.m2/repository/com/beust/jcommander/1.48/jcommander-1.48.jar = 1428720415000
+/home/roberto/NetBeansProjects/StatusServicoTeste/src/main/java = 1764103268322
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/generated-sources/annotations = 1764183999007
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/script.js = 1764184001520
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/jquery-ui.overrides.css = 1764184001523
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/tag-search-index.js = 1764184001510
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/search.js = 1764184001520
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/package-search-index.js = 1764184001510
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/member-search-index.js = 1764184001510
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/allpackages-index.html = 1764184001509
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/help-doc.html = 1764184001518
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/type-search-index.js = 1764184001510
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/index.html = 1764184001516
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/module-search-index.js = 1764184001510
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/stylesheet.css = 1764184001519
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/allclasses-index.html = 1764184001508
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/element-list = 1764184001483
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/index-all.html = 1764184001515
+/home/roberto/NetBeansProjects/StatusServicoTeste/target/reports/apidocs/overview-tree.html = 1764184001501

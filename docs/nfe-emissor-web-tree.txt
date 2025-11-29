@@ -1,0 +1,16 @@
+nfe-emissor-web/                    ← NOME DO PROJETO
+├── Source Packages/
+│   └── com.souzamonteiro.nfe/     ← PACOTE BASE (IMUTÁVEL)
+│       ├── controller/
+│       ├── dao/
+│       ├── model/
+│       └── service/
+├── Configuration Files/
+│   ├── pom.xml
+│   ├── persistence.xml
+│   ├── web.xml
+│   └── faces-config.xml
+└── Web Pages/
+    ├── WEB-INF/
+    ├── resources/
+    └── *.xhtml
