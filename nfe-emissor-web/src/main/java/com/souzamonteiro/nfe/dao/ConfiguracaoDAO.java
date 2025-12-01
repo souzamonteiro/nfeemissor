@@ -4,15 +4,10 @@ import com.souzamonteiro.nfe.model.Configuracao;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-public class ConfiguracaoDAO extends GenericDAO<Configuracao, Long> {
+public class ConfiguracaoDAO extends GenericDAO<Configuracao> {
     
     public ConfiguracaoDAO() {
         super(Configuracao.class);
-    }
-    
-    @Override
-    protected boolean isNew(Configuracao configuracao) {
-        return configuracao.getId() == null;
     }
     
     public Configuracao getConfiguracao() {

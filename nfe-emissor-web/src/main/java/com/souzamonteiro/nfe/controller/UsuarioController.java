@@ -6,7 +6,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.List;
 
@@ -20,6 +20,10 @@ public class UsuarioController implements Serializable {
     private Usuario usuarioSelecionado;
     private boolean editando;
     private String confirmarSenha;
+    
+    public UsuarioController() {
+        // Construtor vazio para permitir @PostConstruct
+    }
     
     @PostConstruct
     public void init() {

@@ -12,11 +12,15 @@
         </h:head>
         
         <h:body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100vh; display: flex; align-items: center; justify-content: center;">
+            <!-- Mensagens de erro/sucesso -->
             <p:growl id="growl" showDetail="true" life="3000" />
             
             <div class="login-container">
+                <!-- Card principal -->
                 <p:card style="width: 400px; background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-                    <f:facet name="title">
+                    
+                    <!-- Título do card -->
+                    <f:facet name="header">
                         <div style="text-align: center; padding: 20px;">
                             <i class="pi pi-building" style="font-size: 3rem; color: #667eea;"></i>
                             <h2 style="margin: 10px 0 0 0; color: #333;">NF-e Emissor</h2>
@@ -24,34 +28,50 @@
                         </div>
                     </f:facet>
                     
-                    <f:facet name="content">
-                        <h:form id="loginForm">
-                            <div class="p-fluid">
-                                <div class="p-field">
-                                    <p:outputLabel for="login" value="Login ou Email"/>
-                                    <p:inputText id="login" value="#{loginController.login}" 
-                                               required="true" requiredMessage="Login é obrigatório"
-                                               style="width: 100%"/>
-                                </div>
-                                
-                                <div class="p-field">
-                                    <p:outputLabel for="senha" value="Senha"/>
-                                    <p:password id="senha" value="#{loginController.senha}" 
-                                              feedback="false" required="true" 
-                                              requiredMessage="Senha é obrigatória"
-                                              style="width: 100%"/>
-                                </div>
-                                
-                                <div class="p-field" style="margin-top: 20px;">
-                                    <p:commandButton value="Entrar" action="#{loginController.login}" 
-                                                   style="width: 100%; background: #667eea; border: none;"
-                                                   update="growl"/>
-                                </div>
+                    <!-- Formulário de login -->
+                    <h:form id="loginForm">
+                        <div style="padding: 20px;">
+                            
+                            <!-- Campo Login -->
+                            <div class="ui-g-12 ui-md-12">
+                                <p:outputLabel for="login" value="Login ou Email" style="display: block; margin-bottom: 5px;"/>
+                                <p:inputText id="login" value="#{loginController.login}" 
+                                           required="true" requiredMessage="Login é obrigatório"
+                                           style="width: 100%; padding: 10px;"/>
                             </div>
-                        </h:form>
-                    </f:facet>
+                            
+                            <!-- Campo Senha -->
+                            <div class="ui-g-12 ui-md-12" style="margin-top: 15px;">
+                                <p:outputLabel for="senha" value="Senha" style="display: block; margin-bottom: 5px;"/>
+                                <p:password id="senha" value="#{loginController.senha}" 
+                                          feedback="false" required="true" 
+                                          requiredMessage="Senha é obrigatória"
+                                          style="width: 100%; padding: 10px;"/>
+                            </div>
+                            
+                            <!-- Botão Entrar -->
+                            <div class="ui-g-12 ui-md-12" style="margin-top: 25px;">
+                                <p:commandButton value="Entrar" 
+                                               action="#{loginController.login}" 
+                                               style="width: 100%; background: #667eea; border: none; height: 45px; font-weight: bold;"
+                                               update="growl"/>
+                            </div>
+                            
+                            <!-- Mensagem de teste -->
+                            <div style="text-align: center; margin-top: 20px; color: #666; font-size: 12px;">
+                                <p>Use: admin / admin123 (ou crie um usuário no banco)</p>
+                            </div>
+                        </div>
+                    </h:form>
+                    
                 </p:card>
             </div>
+            
+            <!-- Script para debug -->
+            <script type="text/javascript">
+                console.log("Página de login carregada");
+                console.log("JSF PrimeFaces carregado:", typeof PrimeFaces !== 'undefined');
+            </script>
         </h:body>
     </f:view>
 </html>

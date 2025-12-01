@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -9,133 +9,99 @@
     <artifactId>nfe-emissor-web</artifactId>
     <version>1.0.0</version>
     <packaging>war</packaging>
+    <name>nfe-emissor-web</name>
     
     <properties>
+        <!-- Mude para Java 8 como no projeto que funciona -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <version.myfaces>2.3.10</version.myfaces>
-        <version.primefaces>12.0.0</version.primefaces>
-        <version.hibernate>5.6.15.Final</version.hibernate>
-        <version.mysql>8.0.33</version.mysql>
-        <version.jakarta.persistence>3.0.0</version.jakarta.persistence>
-        <version.hibernate.validator>6.2.5.Final</version.hibernate.validator>
-        <version.jakarta.validation>2.0.2</version.jakarta.validation>
-        <version.el>3.0.4</version.el>
+        <failOnMissingWebXml>false</failOnMissingWebXml>
+        <hibernate.version>5.6.15.Final</hibernate.version>
     </properties>
-
+    
     <dependencies>
-        <!-- Apache MyFaces (não requer CDI) -->
+        <!-- JSF 2.2 (igual ao projeto que funciona) -->
         <dependency>
-            <groupId>org.apache.myfaces.core</groupId>
-            <artifactId>myfaces-api</artifactId>
-            <version>${version.myfaces}</version>
+            <groupId>com.sun.faces</groupId>
+            <artifactId>jsf-api</artifactId>
+            <version>2.2.20</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.myfaces.core</groupId>
-            <artifactId>myfaces-impl</artifactId>
-            <version>${version.myfaces}</version>
+            <groupId>com.sun.faces</groupId>
+            <artifactId>jsf-impl</artifactId>
+            <version>2.2.20</version>
         </dependency>
-
-        <!-- PrimeFaces -->
+        
+        <!-- PrimeFaces 10 (igual ao projeto que funciona) -->
         <dependency>
             <groupId>org.primefaces</groupId>
             <artifactId>primefaces</artifactId>
-            <version>${version.primefaces}</version>
+            <version>10.0.0</version>
         </dependency>
-
-        <!-- Hibernate -->
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-            <version>2.1.1</version>
-        </dependency>
-
+        
+        <!-- Hibernate (igual) -->
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>${version.hibernate}</version>
+            <version>${hibernate.version}</version>
         </dependency>
-
-        <!-- JPA API -->
+        
+        <!-- MySQL Connector (igual) -->
         <dependency>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
-            <version>${version.jakarta.persistence}</version>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.33</version>
         </dependency>
-
-        <!-- MySQL -->
+        
+        <!-- Servlet API (igual) -->
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>${version.mysql}</version>
-        </dependency>
-
-        <!-- Bean Validation -->
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-            <version>${version.jakarta.validation}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>${version.hibernate.validator}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>jakarta.el</artifactId>
-            <version>${version.el}</version>
-        </dependency>
-
-        <!-- Servlet API -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>5.0.0</version>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
-
-        <!-- JSTL -->
+        
+        <!-- JPA API (adicione esta) -->
         <dependency>
-            <groupId>jakarta.servlet.jsp.jstl</groupId>
-            <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
-            <version>2.0.0</version>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.1-api</artifactId>
+            <version>1.0.2.Final</version>
         </dependency>
-
-        <!-- JSON Processing -->
+        
+        <!-- javax.annotation (para @PostConstruct) -->
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20231013</version>
-        </dependency>
-
-        <!-- C3P0 Connection Pool -->
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-c3p0</artifactId>
-            <version>${version.hibernate}</version>
+            <version>20230227</version>
         </dependency>
     </dependencies>
     
     <build>
-        <finalName>nfe-emissor</finalName>
+        <finalName>nfeemissor</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.1</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.3.2</version>
+                <version>3.1.0</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
             </plugin>
         </plugins>
     </build>

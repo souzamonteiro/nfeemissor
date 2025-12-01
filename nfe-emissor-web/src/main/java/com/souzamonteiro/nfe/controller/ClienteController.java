@@ -6,6 +6,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.List;
 
@@ -20,6 +21,10 @@ public class ClienteController implements Serializable {
     private boolean editando;
     
     public ClienteController() {
+    }
+    
+    @PostConstruct
+    public void init() {
         carregarClientes();
         novoCliente();
     }
@@ -44,7 +49,8 @@ public class ClienteController implements Serializable {
     public void salvarCliente() {
         try {
             // Validar CPF/CNPJ
-            if (cliente.getCpf() == null && cliente.getCnpj() == null) {
+            if ((cliente.getCpf() == null || cliente.getCpf().trim().isEmpty()) && 
+                (cliente.getCnpj() == null || cliente.getCnpj().trim().isEmpty())) {
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, 
                     "Erro", "Informe CPF ou CNPJ."));
@@ -52,7 +58,7 @@ public class ClienteController implements Serializable {
             }
             
             // Verificar se documento já existe
-            String documento = cliente.getDocumento();
+            String documento = cliente.getCpf() != null ? cliente.getCpf() : cliente.getCnpj();
             Cliente existente = clienteDAO.findByDocumento(documento);
             if (existente != null && !existente.getId().equals(cliente.getId())) {
                 FacesContext.getCurrentInstance().addMessage(null,

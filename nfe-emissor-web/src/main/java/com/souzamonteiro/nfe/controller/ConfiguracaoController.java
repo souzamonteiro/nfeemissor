@@ -6,7 +6,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
 
 @ManagedBean
@@ -15,6 +15,10 @@ public class ConfiguracaoController implements Serializable {
     
     private ConfiguracaoDAO configuracaoDAO = new ConfiguracaoDAO();
     private Configuracao configuracao;
+    
+    public ConfiguracaoController() {
+        // Construtor vazio para permitir @PostConstruct
+    }
     
     @PostConstruct
     public void init() {

@@ -5,15 +5,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
-public class VendaDAO extends GenericDAO<Venda, Long> {
+public class VendaDAO extends GenericDAO<Venda> {
     
     public VendaDAO() {
         super(Venda.class);
-    }
-    
-    @Override
-    protected boolean isNew(Venda venda) {
-        return venda.getId() == null;
     }
     
     public List<Venda> findPendentes() {

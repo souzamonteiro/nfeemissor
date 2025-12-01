@@ -4,15 +4,10 @@ import com.souzamonteiro.nfe.model.Empresa;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-public class EmpresaDAO extends GenericDAO<Empresa, Long> {
+public class EmpresaDAO extends GenericDAO<Empresa> {
     
     public EmpresaDAO() {
         super(Empresa.class);
-    }
-    
-    @Override
-    protected boolean isNew(Empresa empresa) {
-        return empresa.getId() == null;
     }
     
     public Empresa getEmpresa() {

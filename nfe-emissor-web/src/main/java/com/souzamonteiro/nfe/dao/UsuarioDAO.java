@@ -2,18 +2,14 @@ package com.souzamonteiro.nfe.dao;
 
 import com.souzamonteiro.nfe.model.Usuario;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
-public class UsuarioDAO extends GenericDAO<Usuario, Long> {
+public class UsuarioDAO extends GenericDAO<Usuario> {
     
     public UsuarioDAO() {
         super(Usuario.class);
-    }
-    
-    @Override
-    protected boolean isNew(Usuario usuario) {
-        return usuario.getId() == null;
     }
     
     public List<Usuario> findAtivos() {
@@ -33,12 +29,12 @@ public class UsuarioDAO extends GenericDAO<Usuario, Long> {
         EntityManager em = getEntityManager();
         try {
             TypedQuery<Usuario> query = em.createQuery(
-                "SELECT u FROM Usuario u WHERE u.login = :login AND u.ativo = true", 
+                "SELECT u FROM Usuario u WHERE u.login = :login", 
                 Usuario.class
             );
             query.setParameter("login", login);
             return query.getSingleResult();
-        } catch (Exception e) {
+        } catch (NoResultException e) {
             return null;
         } finally {
             em.close();
@@ -49,12 +45,12 @@ public class UsuarioDAO extends GenericDAO<Usuario, Long> {
         EntityManager em = getEntityManager();
         try {
             TypedQuery<Usuario> query = em.createQuery(
-                "SELECT u FROM Usuario u WHERE u.email = :email AND u.ativo = true", 
+                "SELECT u FROM Usuario u WHERE u.email = :email", 
                 Usuario.class
             );
             query.setParameter("email", email);
             return query.getSingleResult();
-        } catch (Exception e) {
+        } catch (NoResultException e) {
             return null;
         } finally {
             em.close();

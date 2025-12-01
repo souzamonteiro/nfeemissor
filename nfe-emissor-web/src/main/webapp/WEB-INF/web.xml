@@ -13,28 +13,7 @@
         <param-value>Development</param-value>
     </context-param>
     
-    <context-param>
-        <param-name>javax.faces.FACELETS_SKIP_COMMENTS</param-name>
-        <param-value>true</param-value>
-    </context-param>
-    
-    <context-param>
-        <param-name>primefaces.THEME</param-name>
-        <param-value>saga</param-value>
-    </context-param>
-    
-    <context-param>
-        <param-name>primefaces.FONT_AWESOME</param-name>
-        <param-value>true</param-value>
-    </context-param>
-    
-    <!-- MyFaces Configuration -->
-    <context-param>
-        <param-name>org.apache.myfaces.CACHE_EL_EXPRESSIONS</param-name>
-        <param-value>alwaysRecompile</param-value>
-    </context-param>
-    
-    <!-- JSF Servlet -->
+    <!-- Faces Servlet -->
     <servlet>
         <servlet-name>Faces Servlet</servlet-name>
         <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
@@ -48,7 +27,7 @@
     
     <!-- Welcome Files -->
     <welcome-file-list>
-        <welcome-file>index.xhtml</welcome-file>
+        <welcome-file>login.xhtml</welcome-file>
     </welcome-file-list>
     
     <!-- Session Configuration -->

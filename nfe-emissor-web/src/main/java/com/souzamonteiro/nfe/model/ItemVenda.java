@@ -1,61 +1,162 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package com.souzamonteiro.nfe.model;
 
-import jakarta.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ *
+ * @author roberto
+ */
 @Entity
 @Table(name = "item_venda")
-public class ItemVenda {
-    
+@XmlRootElement
+@NamedQueries({
+    @NamedQuery(name = "ItemVenda.findAll", query = "SELECT i FROM ItemVenda i"),
+    @NamedQuery(name = "ItemVenda.findById", query = "SELECT i FROM ItemVenda i WHERE i.id = :id"),
+    @NamedQuery(name = "ItemVenda.findByQuantidade", query = "SELECT i FROM ItemVenda i WHERE i.quantidade = :quantidade"),
+    @NamedQuery(name = "ItemVenda.findByValorUnitario", query = "SELECT i FROM ItemVenda i WHERE i.valorUnitario = :valorUnitario"),
+    @NamedQuery(name = "ItemVenda.findByValorTotal", query = "SELECT i FROM ItemVenda i WHERE i.valorTotal = :valorTotal"),
+    @NamedQuery(name = "ItemVenda.findByDataCriacao", query = "SELECT i FROM ItemVenda i WHERE i.dataCriacao = :dataCriacao")})
+public class ItemVenda implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @ManyToOne
-    @JoinColumn(name = "venda_id", nullable = false)
-    private Venda venda;
-    
-    @ManyToOne
-    @JoinColumn(name = "produto_id", nullable = false)
-    private Produto produto;
-    
-    @Column(name = "quantidade", precision = 15, scale = 4, nullable = false)
-    private BigDecimal quantidade = BigDecimal.ONE;
-    
-    @Column(name = "valor_unitario", precision = 15, scale = 4, nullable = false)
+    @Basic(optional = false)
+    @Column(name = "id")
+    private Integer id;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Basic(optional = false)
+    @Column(name = "quantidade")
+    private BigDecimal quantidade;
+    @Basic(optional = false)
+    @Column(name = "valor_unitario")
     private BigDecimal valorUnitario;
-    
-    @Column(name = "valor_total", precision = 15, scale = 2, nullable = false)
+    @Basic(optional = false)
+    @Column(name = "valor_total")
     private BigDecimal valorTotal;
-    
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public Venda getVenda() { return venda; }
-    public void setVenda(Venda venda) { this.venda = venda; }
-    
-    public Produto getProduto() { return produto; }
-    public void setProduto(Produto produto) { this.produto = produto; }
-    
-    public BigDecimal getQuantidade() { return quantidade; }
-    public void setQuantidade(BigDecimal quantidade) { 
-        this.quantidade = quantidade; 
-        calcularTotal();
+    @Column(name = "data_criacao")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dataCriacao;
+    @JoinColumn(name = "produto_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Produto produtoId;
+    @JoinColumn(name = "venda_id", referencedColumnName = "id")
+    @ManyToOne(optional = false)
+    private Venda vendaId;
+
+    public ItemVenda() {
     }
-    
-    public BigDecimal getValorUnitario() { return valorUnitario; }
-    public void setValorUnitario(BigDecimal valorUnitario) { 
-        this.valorUnitario = valorUnitario; 
-        calcularTotal();
+
+    public ItemVenda(Integer id) {
+        this.id = id;
     }
-    
-    public BigDecimal getValorTotal() { return valorTotal; }
-    public void setValorTotal(BigDecimal valorTotal) { this.valorTotal = valorTotal; }
-    
-    public void calcularTotal() {
-        if (quantidade != null && valorUnitario != null) {
-            this.valorTotal = quantidade.multiply(valorUnitario);
+
+    public ItemVenda(Integer id, BigDecimal quantidade, BigDecimal valorUnitario, BigDecimal valorTotal) {
+        this.id = id;
+        this.quantidade = quantidade;
+        this.valorUnitario = valorUnitario;
+        this.valorTotal = valorTotal;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public BigDecimal getQuantidade() {
+        return quantidade;
+    }
+
+    public void setQuantidade(BigDecimal quantidade) {
+        this.quantidade = quantidade;
+    }
+
+    public BigDecimal getValorUnitario() {
+        return valorUnitario;
+    }
+
+    public void setValorUnitario(BigDecimal valorUnitario) {
+        this.valorUnitario = valorUnitario;
+    }
+
+    public BigDecimal getValorTotal() {
+        return valorTotal;
+    }
+
+    public void setValorTotal(BigDecimal valorTotal) {
+        this.valorTotal = valorTotal;
+    }
+
+    public Date getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public void setDataCriacao(Date dataCriacao) {
+        this.dataCriacao = dataCriacao;
+    }
+
+    public Produto getProdutoId() {
+        return produtoId;
+    }
+
+    public void setProdutoId(Produto produtoId) {
+        this.produtoId = produtoId;
+    }
+
+    public Venda getVendaId() {
+        return vendaId;
+    }
+
+    public void setVendaId(Venda vendaId) {
+        this.vendaId = vendaId;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof ItemVenda)) {
+            return false;
         }
+        ItemVenda other = (ItemVenda) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
     }
+
+    @Override
+    public String toString() {
+        return "com.souzamonteiro.nfe.model.ItemVenda[ id=" + id + " ]";
+    }
+    
 }

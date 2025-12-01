@@ -1,40 +1,59 @@
 package com.souzamonteiro.nfe.dao;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.io.Serializable;
+import javax.persistence.EntityTransaction;
 import java.util.List;
 
-public abstract class GenericDAO<T, ID extends Serializable> {
+import com.souzamonteiro.nfe.util.HibernateUtil;
+
+public class GenericDAO<T> {
     
-    private static EntityManagerFactory emf;
-    private final Class<T> entityClass;
+    private final Class<T> clazz;
     
-    static {
-        try {
-            emf = Persistence.createEntityManagerFactory("nfePU");
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao criar EntityManagerFactory", e);
-        }
-    }
-    
-    protected GenericDAO(Class<T> entityClass) {
-        this.entityClass = entityClass;
+    public GenericDAO(Class<T> clazz) {
+        this.clazz = clazz;
     }
     
     protected EntityManager getEntityManager() {
-        return emf.createEntityManager();
+        return HibernateUtil.getEntityManager();
     }
     
-    public T findById(ID id) {
+    public void save(T entity) {
+        EntityManager em = getEntityManager();
+        EntityTransaction tx = null;
+        
+        try {
+            tx = em.getTransaction();
+            tx.begin();
+            
+            // Verificar se é novo (não tem ID) ou se já existe
+            try {
+                Object id = em.getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(entity);
+                if (id == null) {
+                    em.persist(entity);
+                } else {
+                    em.merge(entity);
+                }
+            } catch (Exception e) {
+                // Se não conseguir verificar, tenta merge
+                em.merge(entity);
+            }
+            
+            tx.commit();
+        } catch (Exception e) {
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
+            }
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+    
+    public T findById(Long id) {
         EntityManager em = getEntityManager();
         try {
-            return em.find(entityClass, id);
+            return em.find(clazz, id);
         } finally {
             em.close();
         }
@@ -43,30 +62,24 @@ public abstract class GenericDAO<T, ID extends Serializable> {
     public List<T> findAll() {
         EntityManager em = getEntityManager();
         try {
-            CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<T> cq = cb.createQuery(entityClass);
-            Root<T> root = cq.from(entityClass);
-            cq.select(root);
-            return em.createQuery(cq).getResultList();
+            return em.createQuery("FROM " + clazz.getSimpleName(), clazz).getResultList();
         } finally {
             em.close();
         }
     }
     
-    public T save(T entity) {
+    public void update(T entity) {
         EntityManager em = getEntityManager();
+        EntityTransaction tx = null;
+        
         try {
-            em.getTransaction().begin();
-            if (isNew(entity)) {
-                em.persist(entity);
-            } else {
-                entity = em.merge(entity);
-            }
-            em.getTransaction().commit();
-            return entity;
+            tx = em.getTransaction();
+            tx.begin();
+            em.merge(entity);
+            tx.commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
             }
             throw e;
         } finally {
@@ -74,37 +87,25 @@ public abstract class GenericDAO<T, ID extends Serializable> {
         }
     }
     
-    public void delete(T entity) {
+    public void delete(Long id) {
         EntityManager em = getEntityManager();
+        EntityTransaction tx = null;
+        
         try {
-            em.getTransaction().begin();
-            if (!em.contains(entity)) {
-                entity = em.merge(entity);
+            tx = em.getTransaction();
+            tx.begin();
+            T entity = em.find(clazz, id);
+            if (entity != null) {
+                em.remove(entity);
             }
-            em.remove(entity);
-            em.getTransaction().commit();
+            tx.commit();
         } catch (Exception e) {
-            if (em.getTransaction().isActive()) {
-                em.getTransaction().rollback();
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
             }
             throw e;
         } finally {
             em.close();
         }
     }
-    
-    public Long count() {
-        EntityManager em = getEntityManager();
-        try {
-            CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<Long> cq = cb.createQuery(Long.class);
-            Root<T> root = cq.from(entityClass);
-            cq.select(cb.count(root));
-            return em.createQuery(cq).getSingleResult();
-        } finally {
-            em.close();
-        }
-    }
-    
-    protected abstract boolean isNew(T entity);
 }

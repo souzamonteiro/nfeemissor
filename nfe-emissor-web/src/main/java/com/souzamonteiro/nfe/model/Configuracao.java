@@ -1,108 +1,277 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package com.souzamonteiro.nfe.model;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import java.io.Serializable;
+import java.util.Date;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ *
+ * @author roberto
+ */
 @Entity
 @Table(name = "configuracao")
-public class Configuracao {
-    
+@XmlRootElement
+@NamedQueries({
+    @NamedQuery(name = "Configuracao.findAll", query = "SELECT c FROM Configuracao c"),
+    @NamedQuery(name = "Configuracao.findById", query = "SELECT c FROM Configuracao c WHERE c.id = :id"),
+    @NamedQuery(name = "Configuracao.findByWebserviceUf", query = "SELECT c FROM Configuracao c WHERE c.webserviceUf = :webserviceUf"),
+    @NamedQuery(name = "Configuracao.findByEmitenteUf", query = "SELECT c FROM Configuracao c WHERE c.emitenteUf = :emitenteUf"),
+    @NamedQuery(name = "Configuracao.findByWebserviceAmbiente", query = "SELECT c FROM Configuracao c WHERE c.webserviceAmbiente = :webserviceAmbiente"),
+    @NamedQuery(name = "Configuracao.findByCaminhoSchemas", query = "SELECT c FROM Configuracao c WHERE c.caminhoSchemas = :caminhoSchemas"),
+    @NamedQuery(name = "Configuracao.findByCaminhoCertificado", query = "SELECT c FROM Configuracao c WHERE c.caminhoCertificado = :caminhoCertificado"),
+    @NamedQuery(name = "Configuracao.findBySenhaCertificado", query = "SELECT c FROM Configuracao c WHERE c.senhaCertificado = :senhaCertificado"),
+    @NamedQuery(name = "Configuracao.findByCaminhoXml", query = "SELECT c FROM Configuracao c WHERE c.caminhoXml = :caminhoXml"),
+    @NamedQuery(name = "Configuracao.findByGerarPdf", query = "SELECT c FROM Configuracao c WHERE c.gerarPdf = :gerarPdf"),
+    @NamedQuery(name = "Configuracao.findByPortaServidor", query = "SELECT c FROM Configuracao c WHERE c.portaServidor = :portaServidor"),
+    @NamedQuery(name = "Configuracao.findBySerieNfe", query = "SELECT c FROM Configuracao c WHERE c.serieNfe = :serieNfe"),
+    @NamedQuery(name = "Configuracao.findByNaturezaOperacao", query = "SELECT c FROM Configuracao c WHERE c.naturezaOperacao = :naturezaOperacao"),
+    @NamedQuery(name = "Configuracao.findByFinalidadeEmissao", query = "SELECT c FROM Configuracao c WHERE c.finalidadeEmissao = :finalidadeEmissao"),
+    @NamedQuery(name = "Configuracao.findByConsumidorFinal", query = "SELECT c FROM Configuracao c WHERE c.consumidorFinal = :consumidorFinal"),
+    @NamedQuery(name = "Configuracao.findByPresencaComprador", query = "SELECT c FROM Configuracao c WHERE c.presencaComprador = :presencaComprador"),
+    @NamedQuery(name = "Configuracao.findByDataCriacao", query = "SELECT c FROM Configuracao c WHERE c.dataCriacao = :dataCriacao"),
+    @NamedQuery(name = "Configuracao.findByDataAtualizacao", query = "SELECT c FROM Configuracao c WHERE c.dataAtualizacao = :dataAtualizacao")})
+public class Configuracao implements Serializable {
+
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @NotBlank(message = "UF do WebService é obrigatória")
-    @Column(name = "webservice_uf", nullable = false, length = 2)
-    private String webserviceUF = "BA";
-    
-    @NotBlank(message = "UF do Emitente é obrigatória")
-    @Column(name = "emitente_uf", nullable = false, length = 2)
-    private String emitenteUF = "BA";
-    
-    @NotBlank(message = "Ambiente é obrigatório")
-    @Column(name = "webservice_ambiente", nullable = false, length = 1)
-    private String webserviceAmbiente = "2";
-    
-    @NotBlank(message = "Caminho dos Schemas é obrigatório")
-    @Column(name = "caminho_schemas", nullable = false, length = 500)
+    @Basic(optional = false)
+    @Column(name = "id")
+    private Integer id;
+    @Basic(optional = false)
+    @Column(name = "webservice_uf")
+    private String webserviceUf;
+    @Basic(optional = false)
+    @Column(name = "emitente_uf")
+    private String emitenteUf;
+    @Basic(optional = false)
+    @Column(name = "webservice_ambiente")
+    private String webserviceAmbiente;
+    @Basic(optional = false)
+    @Column(name = "caminho_schemas")
     private String caminhoSchemas;
-    
-    @NotBlank(message = "Caminho do Certificado é obrigatório")
-    @Column(name = "caminho_certificado", nullable = false, length = 500)
+    @Basic(optional = false)
+    @Column(name = "caminho_certificado")
     private String caminhoCertificado;
-    
-    @NotBlank(message = "Senha do Certificado é obrigatória")
-    @Column(name = "senha_certificado", nullable = false, length = 100)
+    @Basic(optional = false)
+    @Column(name = "senha_certificado")
     private String senhaCertificado;
+    @Basic(optional = false)
+    @Column(name = "caminho_xml")
+    private String caminhoXml;
+    @Column(name = "gerar_pdf")
+    private String gerarPdf;
+    @Column(name = "porta_servidor")
+    private String portaServidor;
+    @Column(name = "serie_nfe")
+    private String serieNfe;
+    @Column(name = "natureza_operacao")
+    private String naturezaOperacao;
+    @Column(name = "finalidade_emissao")
+    private String finalidadeEmissao;
+    @Column(name = "consumidor_final")
+    private String consumidorFinal;
+    @Column(name = "presenca_comprador")
+    private String presencaComprador;
+    @Column(name = "data_criacao")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dataCriacao;
+    @Column(name = "data_atualizacao")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dataAtualizacao;
+
+    public Configuracao() {
+    }
+
+    public Configuracao(Integer id) {
+        this.id = id;
+    }
+
+    public Configuracao(Integer id, String webserviceUf, String emitenteUf, String webserviceAmbiente, String caminhoSchemas, String caminhoCertificado, String senhaCertificado, String caminhoXml) {
+        this.id = id;
+        this.webserviceUf = webserviceUf;
+        this.emitenteUf = emitenteUf;
+        this.webserviceAmbiente = webserviceAmbiente;
+        this.caminhoSchemas = caminhoSchemas;
+        this.caminhoCertificado = caminhoCertificado;
+        this.senhaCertificado = senhaCertificado;
+        this.caminhoXml = caminhoXml;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getWebserviceUf() {
+        return webserviceUf;
+    }
+
+    public void setWebserviceUf(String webserviceUf) {
+        this.webserviceUf = webserviceUf;
+    }
+
+    public String getEmitenteUf() {
+        return emitenteUf;
+    }
+
+    public void setEmitenteUf(String emitenteUf) {
+        this.emitenteUf = emitenteUf;
+    }
+
+    public String getWebserviceAmbiente() {
+        return webserviceAmbiente;
+    }
+
+    public void setWebserviceAmbiente(String webserviceAmbiente) {
+        this.webserviceAmbiente = webserviceAmbiente;
+    }
+
+    public String getCaminhoSchemas() {
+        return caminhoSchemas;
+    }
+
+    public void setCaminhoSchemas(String caminhoSchemas) {
+        this.caminhoSchemas = caminhoSchemas;
+    }
+
+    public String getCaminhoCertificado() {
+        return caminhoCertificado;
+    }
+
+    public void setCaminhoCertificado(String caminhoCertificado) {
+        this.caminhoCertificado = caminhoCertificado;
+    }
+
+    public String getSenhaCertificado() {
+        return senhaCertificado;
+    }
+
+    public void setSenhaCertificado(String senhaCertificado) {
+        this.senhaCertificado = senhaCertificado;
+    }
+
+    public String getCaminhoXml() {
+        return caminhoXml;
+    }
+
+    public void setCaminhoXml(String caminhoXml) {
+        this.caminhoXml = caminhoXml;
+    }
+
+    public String getGerarPdf() {
+        return gerarPdf;
+    }
+
+    public void setGerarPdf(String gerarPdf) {
+        this.gerarPdf = gerarPdf;
+    }
+
+    public String getPortaServidor() {
+        return portaServidor;
+    }
+
+    public void setPortaServidor(String portaServidor) {
+        this.portaServidor = portaServidor;
+    }
+
+    public String getSerieNfe() {
+        return serieNfe;
+    }
+
+    public void setSerieNfe(String serieNfe) {
+        this.serieNfe = serieNfe;
+    }
+
+    public String getNaturezaOperacao() {
+        return naturezaOperacao;
+    }
+
+    public void setNaturezaOperacao(String naturezaOperacao) {
+        this.naturezaOperacao = naturezaOperacao;
+    }
+
+    public String getFinalidadeEmissao() {
+        return finalidadeEmissao;
+    }
+
+    public void setFinalidadeEmissao(String finalidadeEmissao) {
+        this.finalidadeEmissao = finalidadeEmissao;
+    }
+
+    public String getConsumidorFinal() {
+        return consumidorFinal;
+    }
+
+    public void setConsumidorFinal(String consumidorFinal) {
+        this.consumidorFinal = consumidorFinal;
+    }
+
+    public String getPresencaComprador() {
+        return presencaComprador;
+    }
+
+    public void setPresencaComprador(String presencaComprador) {
+        this.presencaComprador = presencaComprador;
+    }
+
+    public Date getDataCriacao() {
+        return dataCriacao;
+    }
+
+    public void setDataCriacao(Date dataCriacao) {
+        this.dataCriacao = dataCriacao;
+    }
+
+    public Date getDataAtualizacao() {
+        return dataAtualizacao;
+    }
+
+    public void setDataAtualizacao(Date dataAtualizacao) {
+        this.dataAtualizacao = dataAtualizacao;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Configuracao)) {
+            return false;
+        }
+        Configuracao other = (Configuracao) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "com.souzamonteiro.nfe.model.Configuracao[ id=" + id + " ]";
+    }
     
-    @NotBlank(message = "Caminho do XML é obrigatório")
-    @Column(name = "caminho_xml", nullable = false, length = 500)
-    private String caminhoXML;
-    
-    @Column(name = "gerar_pdf", length = 1)
-    private String gerarPDF = "1";
-    
-    @Column(name = "porta_servidor", length = 5)
-    private String portaServidor = "3435";
-    
-    @Column(name = "serie_nfe", length = 3)
-    private String serieNFe = "1";
-    
-    @Column(name = "natureza_operacao", length = 100)
-    private String naturezaOperacao = "VENDA";
-    
-    @Column(name = "finalidade_emissao", length = 1)
-    private String finalidadeEmissao = "1";
-    
-    @Column(name = "consumidor_final", length = 1)
-    private String consumidorFinal = "1";
-    
-    @Column(name = "presenca_comprador", length = 1)
-    private String presencaComprador = "1";
-    
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public String getWebserviceUF() { return webserviceUF; }
-    public void setWebserviceUF(String webserviceUF) { this.webserviceUF = webserviceUF; }
-    
-    public String getEmitenteUF() { return emitenteUF; }
-    public void setEmitenteUF(String emitenteUF) { this.emitenteUF = emitenteUF; }
-    
-    public String getWebserviceAmbiente() { return webserviceAmbiente; }
-    public void setWebserviceAmbiente(String webserviceAmbiente) { this.webserviceAmbiente = webserviceAmbiente; }
-    
-    public String getCaminhoSchemas() { return caminhoSchemas; }
-    public void setCaminhoSchemas(String caminhoSchemas) { this.caminhoSchemas = caminhoSchemas; }
-    
-    public String getCaminhoCertificado() { return caminhoCertificado; }
-    public void setCaminhoCertificado(String caminhoCertificado) { this.caminhoCertificado = caminhoCertificado; }
-    
-    public String getSenhaCertificado() { return senhaCertificado; }
-    public void setSenhaCertificado(String senhaCertificado) { this.senhaCertificado = senhaCertificado; }
-    
-    public String getCaminhoXML() { return caminhoXML; }
-    public void setCaminhoXML(String caminhoXML) { this.caminhoXML = caminhoXML; }
-    
-    public String getGerarPDF() { return gerarPDF; }
-    public void setGerarPDF(String gerarPDF) { this.gerarPDF = gerarPDF; }
-    
-    public String getPortaServidor() { return portaServidor; }
-    public void setPortaServidor(String portaServidor) { this.portaServidor = portaServidor; }
-    
-    public String getSerieNFe() { return serieNFe; }
-    public void setSerieNFe(String serieNFe) { this.serieNFe = serieNFe; }
-    
-    public String getNaturezaOperacao() { return naturezaOperacao; }
-    public void setNaturezaOperacao(String naturezaOperacao) { this.naturezaOperacao = naturezaOperacao; }
-    
-    public String getFinalidadeEmissao() { return finalidadeEmissao; }
-    public void setFinalidadeEmissao(String finalidadeEmissao) { this.finalidadeEmissao = finalidadeEmissao; }
-    
-    public String getConsumidorFinal() { return consumidorFinal; }
-    public void setConsumidorFinal(String consumidorFinal) { this.consumidorFinal = consumidorFinal; }
-    
-    public String getPresencaComprador() { return presencaComprador; }
-    public void setPresencaComprador(String presencaComprador) { this.presencaComprador = presencaComprador; }
 }
