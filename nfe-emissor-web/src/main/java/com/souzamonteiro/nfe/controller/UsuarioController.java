@@ -104,7 +104,6 @@ public class UsuarioController implements Serializable {
                 "Sucesso", "Usuário salvo com sucesso."));
                 
         } catch (Exception e) {
-            e.printStackTrace();
             FacesContext.getCurrentInstance().addMessage("form:growl",
                 new FacesMessage(FacesMessage.SEVERITY_ERROR, 
                 "Erro", "Erro ao salvar usuário: " + e.getMessage()));
@@ -133,7 +132,6 @@ public class UsuarioController implements Serializable {
                     new FacesMessage(FacesMessage.SEVERITY_INFO, 
                     "Sucesso", "Usuário excluído com sucesso."));
             } catch (Exception e) {
-                e.printStackTrace();
                 FacesContext.getCurrentInstance().addMessage("form:growl",
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, 
                     "Erro", "Erro ao excluir usuário: " + e.getMessage()));

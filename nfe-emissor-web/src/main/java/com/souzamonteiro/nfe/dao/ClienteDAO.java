@@ -2,6 +2,7 @@ package com.souzamonteiro.nfe.dao;
 
 import com.souzamonteiro.nfe.model.Cliente;
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.io.Serializable;
 import java.util.List;
@@ -36,7 +37,7 @@ public class ClienteDAO extends GenericDAO<Cliente> implements Serializable {
             );
             query.setParameter("doc", documento);
             return query.getSingleResult();
-        } catch (Exception e) {
+        } catch (NoResultException e) {
             return null;
         } finally {
             em.close();

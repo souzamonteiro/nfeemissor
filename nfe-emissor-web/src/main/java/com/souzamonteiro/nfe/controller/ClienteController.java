@@ -6,7 +6,10 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
+import javax.faces.component.UIViewRoot;
 import javax.annotation.PostConstruct;
+import org.primefaces.event.SelectEvent;
+import org.primefaces.event.UnselectEvent;
 import java.io.Serializable;
 import java.util.List;
 
@@ -18,31 +21,35 @@ public class ClienteController implements Serializable {
     private List<Cliente> clientes;
     private Cliente cliente;
     private Cliente clienteSelecionado;
-    private boolean editando;
-    
-    public ClienteController() {
-    }
+    private boolean editando = false; // Inicialize como false
     
     @PostConstruct
     public void init() {
         carregarClientes();
-        novoCliente();
     }
     
     public void carregarClientes() {
         clientes = clienteDAO.findAtivos();
         editando = false;
+        clienteSelecionado = null;
+        cliente = null; // Adicione esta linha
     }
     
     public void novoCliente() {
         cliente = new Cliente();
+        cliente.setAtivo(true); // Se tiver campo ativo
         editando = true;
+        clienteSelecionado = null;
     }
     
     public void editarCliente() {
         if (clienteSelecionado != null) {
             cliente = clienteSelecionado;
             editando = true;
+        } else {
+            FacesContext.getCurrentInstance().addMessage("form:growl",
+                new FacesMessage(FacesMessage.SEVERITY_WARN, 
+                "Aviso", "Selecione um cliente para editar."));
         }
     }
     
@@ -96,11 +103,27 @@ public class ClienteController implements Serializable {
                     new FacesMessage(FacesMessage.SEVERITY_ERROR, 
                     "Erro", "Erro ao excluir cliente: " + e.getMessage()));
             }
+        } else {
+            FacesContext.getCurrentInstance().addMessage("form:growl",
+                new FacesMessage(FacesMessage.SEVERITY_WARN, 
+                "Aviso", "Selecione um cliente para excluir."));
         }
     }
     
     public void cancelarEdicao() {
         carregarClientes();
+    }
+    
+    // Métodos para manipular seleção no dataTable
+    public void onRowSelect(SelectEvent<Cliente> event) {
+        clienteSelecionado = event.getObject();
+        FacesContext.getCurrentInstance().addMessage("form:growl",
+            new FacesMessage(FacesMessage.SEVERITY_INFO, 
+            "Selecionado", "Usuário selecionado: " + clienteSelecionado.getXnome()));
+    }
+    
+    public void onRowUnselect(UnselectEvent<Cliente> event) {
+        clienteSelecionado = null;
     }
     
     // Getters e Setters
@@ -113,6 +136,9 @@ public class ClienteController implements Serializable {
     }
     
     public Cliente getCliente() { 
+        if (cliente == null) {
+            cliente = new Cliente();
+        }
         return cliente; 
     }
     
