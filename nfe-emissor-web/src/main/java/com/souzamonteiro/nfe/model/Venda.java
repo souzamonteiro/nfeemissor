@@ -42,6 +42,7 @@ import javax.xml.bind.annotation.XmlTransient;
     @NamedQuery(name = "Venda.findByProtocoloNfe", query = "SELECT v FROM Venda v WHERE v.protocoloNfe = :protocoloNfe"),
     @NamedQuery(name = "Venda.findByStatus", query = "SELECT v FROM Venda v WHERE v.status = :status"),
     @NamedQuery(name = "Venda.findByValorTotal", query = "SELECT v FROM Venda v WHERE v.valorTotal = :valorTotal"),
+    @NamedQuery(name = "Venda.findByChavePix", query = "SELECT v FROM Venda v WHERE v.chavePix = :chavePix"),
     @NamedQuery(name = "Venda.findByDataCriacao", query = "SELECT v FROM Venda v WHERE v.dataCriacao = :dataCriacao"),
     @NamedQuery(name = "Venda.findByDataAtualizacao", query = "SELECT v FROM Venda v WHERE v.dataAtualizacao = :dataAtualizacao")})
 public class Venda implements Serializable {
@@ -67,6 +68,8 @@ public class Venda implements Serializable {
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Column(name = "valor_total")
     private BigDecimal valorTotal;
+    @Column(name = "chave_pix")
+    private String chavePix;
     @Column(name = "data_criacao")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataCriacao;
@@ -145,6 +148,14 @@ public class Venda implements Serializable {
 
     public void setValorTotal(BigDecimal valorTotal) {
         this.valorTotal = valorTotal;
+    }
+    
+    public String getChavePix() {
+        return chavePix;
+    }
+
+    public void setChavePix(String chavePix) {
+        this.chavePix = chavePix;
     }
 
     public Date getDataCriacao() {

@@ -359,6 +359,10 @@ body {
     font-weight: 500 !important;
 }
 
+.form-title {
+    margin-right: 5px;    
+}
+
 /* =========================================
    GRID E ESPAÇAMENTOS
    ========================================= */

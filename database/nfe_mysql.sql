@@ -136,10 +136,11 @@ CREATE TABLE venda (
     cliente_id INT NOT NULL,
     data_venda TIMESTAMP NOT NULL,
     numero_nfe INT,
-    chave_nfe VARCHAR(44),
+    chave_nfe VARCHAR(47),
     protocolo_nfe VARCHAR(50),
     status VARCHAR(20) DEFAULT 'PENDENTE',
     valor_total DECIMAL(15,2) DEFAULT 0.00,
+    chave_pix VARCHAR(512),
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

@@ -2,24 +2,31 @@ package com.souzamonteiro.nfe.controller;
 
 import com.souzamonteiro.nfe.dao.*;
 import com.souzamonteiro.nfe.model.*;
+import com.souzamonteiro.nfe.service.PixService;
+import com.souzamonteiro.nfe.util.GeradorQRCodePix;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.primefaces.PrimeFaces;
+import javax.annotation.PostConstruct;
+import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
-import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
-import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Serializable;
+import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
 
 @ManagedBean
 @ViewScoped
@@ -38,16 +45,11 @@ public class VendaController implements Serializable {
     private Cliente clienteSelecionado;
     private Produto produtoSelecionado;
     private ItemVenda itemVenda;
-    private boolean editando;
-    
-    public VendaController() {
-        // Construtor vazio para permitir @PostConstruct
-    }
+    private boolean editando = false; // Inicialize como false
     
     @PostConstruct
     public void init() {
         carregarVendas();
-        novaVenda();
         carregarClientes();
         carregarProdutos();
     }
@@ -174,8 +176,11 @@ public class VendaController implements Serializable {
             // Preencher datas obrigatórias
             venda.setDataCriacao(new Date());
             
+            Empresa empresa = empresaDAO.getEmpresa();
+            Configuracao config = configuracaoDAO.getConfiguracao();
+            
             // Gerar número da NF-e
-            Integer numeroNFe = vendaDAO.getProximoNumeroNFe();
+            Integer numeroNFe = config.getNumeroNfe();
             venda.setNumeroNfe(numeroNFe);
             
             // Salvar venda
@@ -187,7 +192,18 @@ public class VendaController implements Serializable {
             if (sucesso) {
                 venda.setStatus("EMITIDA");
                 venda.setDataAtualizacao(new Date());
+                
+                String chavePix = PixService.gerarChavePixParaVenda(venda, empresa);
+                if (PixService.isChavePixValida(chavePix)) {
+                    venda.setChavePix(chavePix);
+                }
+                
                 vendaDAO.save(venda);
+                
+                config.setNumeroNfe(numeroNFe + 1);
+                configuracaoDAO.save(config);
+                
+                abrirPDFAposEmissao();
                 
                 FacesContext.getCurrentInstance().addMessage(null,
                     new FacesMessage(FacesMessage.SEVERITY_INFO, 
@@ -274,10 +290,10 @@ public class VendaController implements Serializable {
         ide.put("mod", "55");
 
         // serie deve ser string
-        ide.put("serie", config.getSerieNfe());
+        ide.put("serie", config.getSerieNfe().toString());
 
         // nNF deve ser string - CORREÇÃO AQUI
-        String nNFStr = String.valueOf(venda.getNumeroNfe());
+        String nNFStr = config.getNumeroNfe().toString();
         ide.put("nNF", nNFStr);
 
         // Formatar data no formato correto
@@ -379,8 +395,7 @@ public class VendaController implements Serializable {
 
         // 5. DETALHES (produtos)
         JSONArray detArray = new JSONArray();
-        int itemNum = 1;
-
+        
         for (ItemVenda item : venda.getItemVendaCollection()) {
             Produto produto = item.getProdutoId();
 
@@ -739,5 +754,115 @@ public class VendaController implements Serializable {
             return new ArrayList<>(venda.getItemVendaCollection());
         }
         return new ArrayList<>();
+    }
+
+    public String getChavePixFormatada() {
+        if (venda != null && venda.getChavePix() != null) {
+            return venda.getChavePix();
+        }
+        return null;
+    }
+    
+    public String getQrCodePixBase64() {
+        try {
+            if (venda != null && venda.getChavePix() != null && !venda.getChavePix().isEmpty()) {
+                byte[] qrCodeBytes = GeradorQRCodePix.gerarQRCodeBytes(venda.getChavePix(), 250);
+                String base64 = Base64.getEncoder().encodeToString(qrCodeBytes);
+                return "data:image/png;base64," + base64;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Fallback para Google Charts se der erro
+            try {
+                String chavePix = venda != null ? venda.getChavePix() : "";
+                if (chavePix != null && !chavePix.isEmpty()) {
+                    String encoded = java.net.URLEncoder.encode(chavePix, "UTF-8");
+                    return "https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl=" + encoded + "&chld=L|1";
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        return null;
+    }
+    
+    public void downloadPDF() {
+        if (venda != null && venda.getChaveNfe() != null) {
+            try {
+                // Armazenar chave na sessão temporariamente
+                Map<String, Object> sessionMap = FacesContext.getCurrentInstance()
+                    .getExternalContext().getSessionMap();
+                sessionMap.put("pdfDownloadChave", venda.getChaveNfe());
+
+                // Fechar o dialog primeiro
+                PrimeFaces.current().executeScript("PF('pdfDialog').hide();");
+
+                // Redirecionar para o servlet de download (fora do AJAX)
+                String contextPath = FacesContext.getCurrentInstance()
+                    .getExternalContext().getRequestContextPath();
+                String downloadUrl = contextPath + "/pdf/download?chave=" + venda.getChaveNfe();
+
+                // Usar redirect não-AJAX
+                FacesContext.getCurrentInstance().getExternalContext()
+                    .redirect(downloadUrl);
+
+            } catch (Exception e) {
+                FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                    "Erro", "Erro ao preparar download: " + e.getMessage()));
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void abrirPDF() {
+        if (venda != null && venda.getChaveNfe() != null) {
+            try {
+                String contextPath = FacesContext.getCurrentInstance()
+                    .getExternalContext().getRequestContextPath();
+                String pdfUrl = contextPath + "/pdf/view?chave=" + venda.getChaveNfe();
+
+                // Abrir em nova aba
+                String script = "window.open('" + pdfUrl + "', '_blank');";
+                PrimeFaces.current().executeScript(script);
+
+                // Fechar dialog
+                PrimeFaces.current().executeScript("PF('pdfDialog').hide();");
+
+            } catch (Exception e) {
+                FacesContext.getCurrentInstance().addMessage(null,
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                    "Erro", "Erro ao abrir PDF: " + e.getMessage()));
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    // Método para preparar download (será chamado pelo h:commandLink)
+    public String prepararDownload() {
+        String chave = FacesContext.getCurrentInstance()
+            .getExternalContext().getRequestParameterMap().get("chave");
+
+        if (chave != null && !chave.isEmpty()) {
+            // Redirecionar para o servlet de download
+            return "/pdf/download?chave=" + chave + "&faces-redirect=true";
+        }
+
+        return null;
+    }
+
+    // Método para abrir automaticamente após emissão
+    private void abrirPDFAposEmissao() {
+        // Primeiro atualiza o componente para garantir que os dados estejam carregados
+        PrimeFaces.current().ajax().update("form:pdfDialog");
+
+        // Depois abre o diálogo
+        PrimeFaces.current().executeScript(
+            "setTimeout(function() { " +
+            "  if (PF('pdfDialog')) { " +
+            "    PF('pdfDialog').show(); " +
+            "  } " +
+            "}, 1000);"
+        );
     }
 }

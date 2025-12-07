@@ -15,7 +15,7 @@
                         <div class="p-d-flex p-ai-center p-jc-between">
                             <div>
                                 <i class="pi pi-shopping-cart p-mr-2"></i>
-                                <span>Vendas e Emissão de NF-e</span>
+                                <span class="form-title">Vendas e Emissão de NF-e</span>
                             </div>
                             <p:commandButton value="Nova Venda" icon="pi pi-plus" 
                                            action="#{vendaController.novaVenda}" 
@@ -49,7 +49,12 @@
                                     <f:convertNumber type="currency" currencyCode="BRL"/>
                                 </h:outputText>
                             </p:column>
-
+                            
+                            <p:column headerText="PIX" style="width: 80px;">
+                                <h:outputText value="✅" rendered="#{venda.chavePix != null}"/>
+                                <h:outputText value="-" rendered="#{venda.chavePix == null}"/>
+                            </p:column>
+                            
                             <p:column headerText="Status" style="width: 100px;">
                                 <p:tag value="#{venda.status}" 
                                      severity="#{venda.status == 'EMITIDA' ? 'success' : venda.status == 'PENDENTE' ? 'warning' : 'danger'}"/>
@@ -177,6 +182,112 @@
                         </p:panel>
                     </p:outputPanel>
                 </p:card>
+                
+                <p:dialog id="pdfDialog" header="NF-e Emitida" widgetVar="pdfDialog" 
+                          modal="true" width="500" height="auto" dynamic="false" 
+                          onShow="updateQrCode();">
+
+                    <div style="padding: 20px;">
+                        <div class="p-mb-3" style="text-align: center;">
+                            <h4>NF-e Emitida com Sucesso!</h4>
+                        </div>
+
+                        <div class="p-fluid p-mb-3">
+                            <div class="p-field">
+                                <label>Número NF-e:</label>
+                                <p:outputLabel value="#{vendaController.venda.numeroNfe}" 
+                                             style="font-weight: bold;"
+                                             id="numeroNfeLabel"/>
+                            </div>
+
+                            <div class="p-field">
+                                <label>Chave de Acesso:</label>
+                                <p:outputLabel value="#{vendaController.venda.chaveNfe}" 
+                                             style="font-size: 10px; word-break: break-all; color: #666;"
+                                             id="chaveNfeLabel"/>
+                            </div>
+
+                            <!-- Seção PIX - somente se houver chave PIX -->
+                            <div class="p-field" id="pixSection"
+                                 rendered="#{vendaController.venda.chavePix != null and not empty vendaController.venda.chavePix}">
+
+                                <!-- QR Code -->
+                                <!--
+                                <div style="text-align: center; margin-bottom: 15px;">
+                                    <p:graphicImage id="qrCodeImage"
+                                                  value="#{vendaController.qrCodePixBase64}"
+                                                  alt="QR Code PIX"
+                                                  style="border: 1px solid #ddd; padding: 5px; width: 250px; height: 250px;"/>
+                                    <p style="font-size: 12px; color: #666; margin-top: 5px;">
+                                        Escaneie o QR Code com seu app bancário
+                                    </p>
+                                </div>
+                                -->
+
+                                <label>PIX Copia e Cola:</label>
+                                <div style="position: relative;">
+                                    <p:inputTextarea id="chavePix" 
+                                                   value="#{vendaController.venda.chavePix}" 
+                                                   rows="4" 
+                                                   style="width: 100%; font-family: monospace; font-size: 11px;"
+                                                   readonly="true"/>
+                                    <p:commandButton icon="pi pi-copy" 
+                                                   title="Copiar PIX"
+                                                   style="position: absolute; right: 5px; top: 5px;"
+                                                   onclick="copyPixToClipboard(); return false;"/>
+                                </div>
+                                <small style="color: #666;">Clique no botão copiar para colar no seu aplicativo bancário</small>
+                            </div>
+                        </div>
+
+                        <div class="p-d-flex p-jc-between p-mt-4">
+                            <!-- Botão para abrir PDF -->
+                            <p:commandButton value="📄 Abrir DANFE" 
+                                           action="#{vendaController.abrirPDF}"
+                                           styleClass="ui-button-primary"
+                                           oncomplete="PF('pdfDialog').hide();" />
+
+                            <!-- Link para download PDF -->
+                            <a href="#{request.contextPath}/pdf/download?chave=#{vendaController.venda.chaveNfe}" 
+                               target="_blank" 
+                               class="ui-button ui-button-success"
+                               style="text-decoration: none; padding: 0.5em 1em; border-radius: 4px;"
+                               onclick="PF('pdfDialog').hide();">
+                               ⬇️ Baixar DANFE
+                            </a>
+
+                            <p:commandButton value="Fechar" 
+                                           onclick="PF('pdfDialog').hide();"/>
+                        </div>
+                    </div>
+
+                    <!-- Script para copiar PIX -->
+                    <h:outputScript>
+                        function copyPixToClipboard() {
+                            var pixText = document.getElementById('form:chavePix').value;
+                            navigator.clipboard.writeText(pixText).then(function() {
+                                PrimeFaces.showMessage({
+                                    severity: 'info',
+                                    summary: 'Copiado',
+                                    detail: 'Chave PIX copiada para a área de transferência'
+                                });
+                            }).catch(function(err) {
+                                console.error('Erro ao copiar: ', err);
+                            });
+                        }
+
+                        function updateQrCode() {
+                            // Atualiza a imagem do QR Code quando o diálogo abre
+                            var qrCodeImg = document.getElementById('form:qrCodeImage');
+                            if (qrCodeImg) {
+                                // Força o reload da imagem
+                                var src = qrCodeImg.src;
+                                qrCodeImg.src = '';
+                                qrCodeImg.src = src;
+                            }
+                        }
+                    </h:outputScript>
+                </p:dialog>
             </h:form>
         </div>
     </ui:define>

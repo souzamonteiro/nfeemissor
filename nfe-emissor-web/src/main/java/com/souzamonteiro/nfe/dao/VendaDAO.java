@@ -38,20 +38,5 @@ public class VendaDAO extends GenericDAO<Venda> implements Serializable {
         } finally {
             em.close();
         }
-    }
-    
-    public Integer getProximoNumeroNFe() {
-        EntityManager em = getEntityManager();
-        try {
-            TypedQuery<Integer> query = em.createQuery(
-                "SELECT COALESCE(MAX(v.numeroNFe), 0) + 1 FROM Venda v WHERE v.numeroNFe IS NOT NULL", 
-                Integer.class
-            );
-            return query.getSingleResult();
-        } catch (Exception e) {
-            return 1;
-        } finally {
-            em.close();
-        }
-    }
+    }  
 }
