@@ -1,0 +1,148 @@
+{
+	"infNFe": {
+		"ide": {
+			"cNF": "00000103",
+			"natOp": "VENDA COM REDUCAO DE BASE",
+			"serie": "1",
+			"nNF": "7003",
+			"tpNF": "1",
+			"idDest": "1",
+			"cMunFG": "2927408",
+			"tpImp": "1",
+			"tpEmis": "1",
+			"finNFe": "1",
+			"indFinal": "1",
+			"indPres": "1",
+			"procEmi": "0",
+			"verProc": "2026.1"
+		},
+		"emit": {
+			"CNPJ": "33630582000149",
+			"IE": "158039716",
+			"xNome": "Editora Roberto Luiz Souza Monteiro",
+			"CRT": "3",
+			"enderEmit": {
+				"xLgr": "Rua Chile",
+				"nro": "s/n",
+				"xBairro": "Centro",
+				"cMun": "2927408",
+				"xMun": "Salvador",
+				"UF": "BA",
+				"CEP": "40020000"
+			}
+		},
+		"dest": {
+			"CPF": "40325635862",
+			"xNome": "NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL",
+			"enderDest": {
+				"xLgr": "Rua Tanhaçu",
+				"nro": "11",
+				"xBairro": "Ipitanga",
+				"cMun": "2919207",
+				"xMun": "Lauro de Freitas",
+				"UF": "BA",
+				"CEP": "42706730"
+			}
+		},
+		"det": [
+			{
+				"prod": {
+					"cProd": "RED-001",
+					"cEAN": "SEM GTIN",
+					"xProd": "NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL",
+					"NCM": "10063021",
+					"CFOP": "5102",
+					"uCom": "KG",
+					"qCom": "100.0000",
+					"vUnCom": "10.0000",
+					"vProd": "1000.00",
+					"cEANTrib": "SEM GTIN",
+					"uTrib": "KG",
+					"qTrib": "100.0000",
+					"vUnTrib": "10.0000",
+					"indTot": "1"
+				},
+				"imposto": {
+					"ICMS": {
+						"ICMS20": {
+							"orig": "0",
+							"CST": "20",
+							"modBC": "3",
+							"pRedBC": "50.00",
+							"vBC": "500.00",
+							"pICMS": "18.00",
+							"vICMS": "90.00"
+						}
+					},
+					"PIS": {
+						"PISNT": {
+							"CST": "08"
+						}
+					},
+					"COFINS": {
+						"COFINSNT": {
+							"CST": "08"
+						}
+					},
+					"IBSCBS": {
+						"CST": "000",
+						"cClassTrib": "000001",
+						"gIBSCBS": {
+							"vBC": "1000.00",
+							"gIBSUF": {
+								"pIBSUF": "0.10",
+								"vIBSUF": "1.00"
+							},
+							"gIBSMun": {
+								"pIBSMun": "0.00",
+								"vIBSMun": "0.00"
+							},
+							"vIBS": "1.00",
+							"gCBS": {
+								"pCBS": "0.90",
+								"vCBS": "9.00"
+							}
+						}
+					}
+				}
+			}
+		],
+		"total": {
+			"ICMSTot": {
+				"vBC": "500.00",
+				"vICMS": "90.00",
+				"vICMSDeson": "0.00",
+				"vFCP": "0.00",
+				"vBCST": "0.00",
+				"vST": "0.00",
+				"vFCPST": "0.00",
+				"vFCPSTRet": "0.00",
+				"vProd": "1000.00",
+				"vFrete": "0.00",
+				"vSeg": "0.00",
+				"vDesc": "0.00",
+				"vII": "0.00",
+				"vIPI": "0.00",
+				"vIPIDevol": "0.00",
+				"vPIS": "0.00",
+				"vCOFINS": "0.00",
+				"vOutro": "0.00",
+				"vNF": "1000.00"
+			}
+		},
+		"transp": {
+			"modFrete": "9"
+		},
+		"pag": {
+			"detPag": [
+				{
+					"tPag": "01",
+					"vPag": "1000.00"
+				}
+			]
+		},
+		"infAdic": {
+			"infCpl": "Exemplo de ICMS CST 20 com redução de base (legado) e RTC básico 2026. Para redução no RTC, utilizar cClassTrib vigente na tabela oficial da SEFAZ para NFe."
+		}
+	}
+}

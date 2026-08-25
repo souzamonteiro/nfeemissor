@@ -91,6 +91,18 @@ public class Configuracao implements Serializable {
     private String consumidorFinal;
     @Column(name = "presenca_comprador")
     private String presencaComprador;
+    @Column(name = "cst_rtc_padrao")
+    private String cstRtcPadrao;
+    @Column(name = "cclasstrib_rtc_padrao")
+    private String cclasstribRtcPadrao;
+    @Column(name = "pibs_uf_padrao")
+    private java.math.BigDecimal pibsUfPadrao;
+    @Column(name = "pibs_mun_padrao")
+    private java.math.BigDecimal pibsMunPadrao;
+    @Column(name = "pcbs_padrao")
+    private java.math.BigDecimal pcbsPadrao;
+    @Column(name = "tpag_padrao")
+    private String tpagPadrao;
     @Column(name = "data_criacao")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataCriacao;
@@ -242,6 +254,54 @@ public class Configuracao implements Serializable {
 
     public void setPresencaComprador(String presencaComprador) {
         this.presencaComprador = presencaComprador;
+    }
+
+    public String getCstRtcPadrao() {
+        return cstRtcPadrao;
+    }
+
+    public void setCstRtcPadrao(String cstRtcPadrao) {
+        this.cstRtcPadrao = cstRtcPadrao;
+    }
+
+    public String getCclasstribRtcPadrao() {
+        return cclasstribRtcPadrao;
+    }
+
+    public void setCclasstribRtcPadrao(String cclasstribRtcPadrao) {
+        this.cclasstribRtcPadrao = cclasstribRtcPadrao;
+    }
+
+    public java.math.BigDecimal getPibsUfPadrao() {
+        return pibsUfPadrao;
+    }
+
+    public void setPibsUfPadrao(java.math.BigDecimal pibsUfPadrao) {
+        this.pibsUfPadrao = pibsUfPadrao;
+    }
+
+    public java.math.BigDecimal getPibsMunPadrao() {
+        return pibsMunPadrao;
+    }
+
+    public void setPibsMunPadrao(java.math.BigDecimal pibsMunPadrao) {
+        this.pibsMunPadrao = pibsMunPadrao;
+    }
+
+    public java.math.BigDecimal getPcbsPadrao() {
+        return pcbsPadrao;
+    }
+
+    public void setPcbsPadrao(java.math.BigDecimal pcbsPadrao) {
+        this.pcbsPadrao = pcbsPadrao;
+    }
+
+    public String getTpagPadrao() {
+        return tpagPadrao;
+    }
+
+    public void setTpagPadrao(String tpagPadrao) {
+        this.tpagPadrao = tpagPadrao;
     }
 
     public Date getDataCriacao() {

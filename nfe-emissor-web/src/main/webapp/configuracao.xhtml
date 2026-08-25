@@ -135,6 +135,66 @@
                                 </div>
                             </p:panel>
 
+                            <p:panel header="Padrões RTC (IBS/CBS) e Pagamento" toggleable="true" collapsed="false">
+                                <div class="p-grid">
+                                    <div class="p-col-12 p-md-4">
+                                        <p:outputLabel for="cstRtcPadrao" value="CST do RTC padrão"/>
+                                        <p:inputText id="cstRtcPadrao" value="#{configuracaoController.configuracao.cstRtcPadrao}"
+                                                     required="true" requiredMessage="CST RTC padrão é obrigatório"
+                                                     maxlength="3" style="width: 100%"/>
+                                        <small style="color: #666;">Ex.: 000</small>
+                                    </div>
+
+                                    <div class="p-col-12 p-md-4">
+                                        <p:outputLabel for="cClassTribRtcPadrao" value="Código de Classificação Tributária padrão"/>
+                                        <p:inputText id="cClassTribRtcPadrao" value="#{configuracaoController.configuracao.cclasstribRtcPadrao}"
+                                                     required="true" requiredMessage="cClassTrib padrão é obrigatório"
+                                                     maxlength="6" style="width: 100%"/>
+                                        <small style="color: #666;">Ex.: 000001</small>
+                                    </div>
+
+                                    <div class="p-col-12 p-md-4">
+                                        <p:outputLabel for="tpagPadrao" value="Forma de pagamento padrão (tPag)"/>
+                                        <p:selectOneMenu id="tpagPadrao" value="#{configuracaoController.configuracao.tpagPadrao}"
+                                                         required="true" requiredMessage="tPag padrão é obrigatório"
+                                                         style="width: 100%">
+                                            <f:selectItem itemLabel="01 - Dinheiro" itemValue="01"/>
+                                            <f:selectItem itemLabel="03 - Cartão de Crédito" itemValue="03"/>
+                                            <f:selectItem itemLabel="04 - Cartão de Débito" itemValue="04"/>
+                                            <f:selectItem itemLabel="17 - PIX" itemValue="17"/>
+                                            <f:selectItem itemLabel="99 - Outros" itemValue="99"/>
+                                        </p:selectOneMenu>
+                                    </div>
+
+                                    <div class="p-col-12 p-md-4">
+                                        <p:outputLabel for="pibsUfPadrao" value="Alíquota IBS Estado padrão (pIBSUF)"/>
+                                        <p:inputNumber id="pibsUfPadrao" value="#{configuracaoController.configuracao.pibsUfPadrao}"
+                                                       required="true" requiredMessage="pIBSUF padrão é obrigatório"
+                                                       minValue="0" maxValue="100" decimalPlaces="2"
+                                                       style="width: 100%"/>
+                                        <small style="color: #666;">Ex.: 0,10</small>
+                                    </div>
+
+                                    <div class="p-col-12 p-md-4">
+                                        <p:outputLabel for="pibsMunPadrao" value="Alíquota IBS Município padrão (pIBSMun)"/>
+                                        <p:inputNumber id="pibsMunPadrao" value="#{configuracaoController.configuracao.pibsMunPadrao}"
+                                                       required="true" requiredMessage="pIBSMun padrão é obrigatório"
+                                                       minValue="0" maxValue="100" decimalPlaces="2"
+                                                       style="width: 100%"/>
+                                        <small style="color: #666;">Ex.: 0,00</small>
+                                    </div>
+
+                                    <div class="p-col-12 p-md-4">
+                                        <p:outputLabel for="pcbsPadrao" value="Alíquota CBS padrão (pCBS)"/>
+                                        <p:inputNumber id="pcbsPadrao" value="#{configuracaoController.configuracao.pcbsPadrao}"
+                                                       required="true" requiredMessage="pCBS padrão é obrigatório"
+                                                       minValue="0" maxValue="100" decimalPlaces="2"
+                                                       style="width: 100%"/>
+                                        <small style="color: #666;">Ex.: 0,90</small>
+                                    </div>
+                                </div>
+                            </p:panel>
+
                             <p:panel header="Configurações de Arquivos" toggleable="true" collapsed="false">
                                 <div class="p-grid">
                                     <div class="p-col-12">

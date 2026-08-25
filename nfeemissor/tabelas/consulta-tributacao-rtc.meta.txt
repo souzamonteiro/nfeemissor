@@ -1,0 +1,4 @@
+AtualizadoEm=2026-08-25T09:59:40.110225950
+UF=BA
+Ambiente=HOMOLOGACAO
+Origem=ConsultaTributacao.getJson(java-nfe)

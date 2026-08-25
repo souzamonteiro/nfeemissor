@@ -10,6 +10,7 @@ import javax.annotation.PostConstruct;
 import org.primefaces.event.SelectEvent;
 import org.primefaces.event.UnselectEvent;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 @ManagedBean
@@ -37,6 +38,28 @@ public class ProdutoController implements Serializable {
     public void novoProduto() {
         produto = new Produto();
         produto.setAtivo(true);
+        produto.setOrig("0");
+        produto.setCstIcms("00");
+        produto.setModbcIcms("3");
+        produto.setPredbcIcms(BigDecimal.ZERO);
+        produto.setPicms(new BigDecimal("7.00"));
+        produto.setVbcst(BigDecimal.ZERO);
+        produto.setPst(BigDecimal.ZERO);
+        produto.setVicmsst(BigDecimal.ZERO);
+        produto.setVicmsdeson(BigDecimal.ZERO);
+        produto.setMotDesIcms("9");
+        produto.setVbcstret(BigDecimal.ZERO);
+        produto.setVicmssubstituto(BigDecimal.ZERO);
+        produto.setVicmsstret(BigDecimal.ZERO);
+        produto.setCstPis("01");
+        produto.setPpis(new BigDecimal("1.65"));
+        produto.setCstCofins("01");
+        produto.setPcofins(new BigDecimal("7.60"));
+        produto.setCstRtc("000");
+        produto.setCclasstribRtc("000001");
+        produto.setPibsUf(new BigDecimal("0.10"));
+        produto.setPibsMun(BigDecimal.ZERO);
+        produto.setPcbs(new BigDecimal("0.90"));
         editando = true;
         produtoSelecionado = null;
     }
@@ -44,6 +67,51 @@ public class ProdutoController implements Serializable {
     public void editarProduto() {
         if (produtoSelecionado != null) {
             produto = produtoSelecionado;
+            if (produto.getModbcIcms() == null || produto.getModbcIcms().trim().isEmpty()) {
+                produto.setModbcIcms("3");
+            }
+            if (produto.getPredbcIcms() == null) {
+                produto.setPredbcIcms(BigDecimal.ZERO);
+            }
+            if (produto.getVbcst() == null) {
+                produto.setVbcst(BigDecimal.ZERO);
+            }
+            if (produto.getPst() == null) {
+                produto.setPst(BigDecimal.ZERO);
+            }
+            if (produto.getVicmsst() == null) {
+                produto.setVicmsst(BigDecimal.ZERO);
+            }
+            if (produto.getVicmsdeson() == null) {
+                produto.setVicmsdeson(BigDecimal.ZERO);
+            }
+            if (produto.getMotDesIcms() == null || produto.getMotDesIcms().trim().isEmpty()) {
+                produto.setMotDesIcms("9");
+            }
+            if (produto.getVbcstret() == null) {
+                produto.setVbcstret(BigDecimal.ZERO);
+            }
+            if (produto.getVicmssubstituto() == null) {
+                produto.setVicmssubstituto(BigDecimal.ZERO);
+            }
+            if (produto.getVicmsstret() == null) {
+                produto.setVicmsstret(BigDecimal.ZERO);
+            }
+            if (produto.getCstRtc() == null || produto.getCstRtc().trim().isEmpty()) {
+                produto.setCstRtc("000");
+            }
+            if (produto.getCclasstribRtc() == null || produto.getCclasstribRtc().trim().isEmpty()) {
+                produto.setCclasstribRtc("000001");
+            }
+            if (produto.getPibsUf() == null) {
+                produto.setPibsUf(new BigDecimal("0.10"));
+            }
+            if (produto.getPibsMun() == null) {
+                produto.setPibsMun(BigDecimal.ZERO);
+            }
+            if (produto.getPcbs() == null) {
+                produto.setPcbs(new BigDecimal("0.90"));
+            }
             editando = true;
         } else {
             FacesContext.getCurrentInstance().addMessage("form:growl",
@@ -54,6 +122,52 @@ public class ProdutoController implements Serializable {
     
     public void salvarProduto() {
         try {
+            if (produto.getModbcIcms() == null || produto.getModbcIcms().trim().isEmpty()) {
+                produto.setModbcIcms("3");
+            }
+            if (produto.getPredbcIcms() == null) {
+                produto.setPredbcIcms(BigDecimal.ZERO);
+            }
+            if (produto.getVbcst() == null) {
+                produto.setVbcst(BigDecimal.ZERO);
+            }
+            if (produto.getPst() == null) {
+                produto.setPst(BigDecimal.ZERO);
+            }
+            if (produto.getVicmsst() == null) {
+                produto.setVicmsst(BigDecimal.ZERO);
+            }
+            if (produto.getVicmsdeson() == null) {
+                produto.setVicmsdeson(BigDecimal.ZERO);
+            }
+            if (produto.getMotDesIcms() == null || produto.getMotDesIcms().trim().isEmpty()) {
+                produto.setMotDesIcms("9");
+            }
+            if (produto.getVbcstret() == null) {
+                produto.setVbcstret(BigDecimal.ZERO);
+            }
+            if (produto.getVicmssubstituto() == null) {
+                produto.setVicmssubstituto(BigDecimal.ZERO);
+            }
+            if (produto.getVicmsstret() == null) {
+                produto.setVicmsstret(BigDecimal.ZERO);
+            }
+            if (produto.getCstRtc() == null || produto.getCstRtc().trim().isEmpty()) {
+                produto.setCstRtc("000");
+            }
+            if (produto.getCclasstribRtc() == null || produto.getCclasstribRtc().trim().isEmpty()) {
+                produto.setCclasstribRtc("000001");
+            }
+            if (produto.getPibsUf() == null) {
+                produto.setPibsUf(new BigDecimal("0.10"));
+            }
+            if (produto.getPibsMun() == null) {
+                produto.setPibsMun(BigDecimal.ZERO);
+            }
+            if (produto.getPcbs() == null) {
+                produto.setPcbs(new BigDecimal("0.90"));
+            }
+
             // Verificar se código já existe
             Produto existente = produtoDAO.findByCodigo(produto.getCprod());
             if (existente != null && !existente.getId().equals(produto.getId())) {

@@ -184,8 +184,7 @@
                 </p:card>
                 
                 <p:dialog id="pdfDialog" header="NF-e Emitida" widgetVar="pdfDialog" 
-                          modal="true" width="500" height="auto" dynamic="false" 
-                          onShow="updateQrCode();">
+                          modal="true" width="500" height="auto" dynamic="false">
 
                     <div style="padding: 20px;">
                         <div class="p-mb-3" style="text-align: center;">
@@ -212,17 +211,15 @@
                                  rendered="#{vendaController.venda.chavePix != null and not empty vendaController.venda.chavePix}">
 
                                 <!-- QR Code -->
-                                <!--
                                 <div style="text-align: center; margin-bottom: 15px;">
-                                    <p:graphicImage id="qrCodeImage"
-                                                  value="#{vendaController.qrCodePixBase64}"
-                                                  alt="QR Code PIX"
-                                                  style="border: 1px solid #ddd; padding: 5px; width: 250px; height: 250px;"/>
+                                    <img id="qrCodeImage"
+                                         src="#{vendaController.qrCodePixBase64}"
+                                         alt="QR Code PIX"
+                                         style="border: 1px solid #ddd; padding: 5px; width: 250px; height: 250px;"/>
                                     <p style="font-size: 12px; color: #666; margin-top: 5px;">
                                         Escaneie o QR Code com seu app bancário
                                     </p>
                                 </div>
-                                -->
 
                                 <label>PIX Copia e Cola:</label>
                                 <div style="position: relative;">
@@ -274,17 +271,6 @@
                             }).catch(function(err) {
                                 console.error('Erro ao copiar: ', err);
                             });
-                        }
-
-                        function updateQrCode() {
-                            // Atualiza a imagem do QR Code quando o diálogo abre
-                            var qrCodeImg = document.getElementById('form:qrCodeImage');
-                            if (qrCodeImg) {
-                                // Força o reload da imagem
-                                var src = qrCodeImg.src;
-                                qrCodeImg.src = '';
-                                qrCodeImg.src = src;
-                            }
                         }
                     </h:outputScript>
                 </p:dialog>

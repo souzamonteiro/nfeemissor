@@ -70,6 +70,13 @@ CREATE TABLE configuracao (
     finalidade_emissao VARCHAR(1) DEFAULT '1',
     consumidor_final VARCHAR(1) DEFAULT '1',
     presenca_comprador VARCHAR(1) DEFAULT '1',
+    -- Padrões fiscais para RTC (IBS/CBS)
+    cst_rtc_padrao VARCHAR(3) DEFAULT '000',
+    cclasstrib_rtc_padrao VARCHAR(6) DEFAULT '000001',
+    pibs_uf_padrao DECIMAL(5,2) DEFAULT 0.10,
+    pibs_mun_padrao DECIMAL(5,2) DEFAULT 0.00,
+    pcbs_padrao DECIMAL(5,2) DEFAULT 0.90,
+    tpag_padrao VARCHAR(2) DEFAULT '01',
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
@@ -96,11 +103,26 @@ CREATE TABLE produto (
     orig VARCHAR(1) DEFAULT '0',
     cst_icms VARCHAR(3) DEFAULT '00',
     modbc_icms VARCHAR(1) DEFAULT '0',
+    predbc_icms DECIMAL(5,2) DEFAULT 0.00,
     picms DECIMAL(5,2) DEFAULT 7.00,
+    vbcst DECIMAL(15,2) DEFAULT 0.00,
+    pst DECIMAL(5,2) DEFAULT 0.00,
+    vicmsst DECIMAL(15,2) DEFAULT 0.00,
+    vicmsdeson DECIMAL(15,2) DEFAULT 0.00,
+    mot_des_icms VARCHAR(2),
+    vbcstret DECIMAL(15,2) DEFAULT 0.00,
+    vicmssubstituto DECIMAL(15,2) DEFAULT 0.00,
+    vicmsstret DECIMAL(15,2) DEFAULT 0.00,
     cst_pis VARCHAR(2) DEFAULT '01',
     ppis DECIMAL(5,2) DEFAULT 1.65,
     cst_cofins VARCHAR(2) DEFAULT '01',
     pcofins DECIMAL(5,2) DEFAULT 7.60,
+    -- Campos RTC/IBSCBS por produto (NT 2025.002)
+    cst_rtc VARCHAR(3) DEFAULT '000',
+    cclasstrib_rtc VARCHAR(6) DEFAULT '000001',
+    pibs_uf DECIMAL(5,2) DEFAULT 0.10,
+    pibs_mun DECIMAL(5,2) DEFAULT 0.00,
+    pcbs DECIMAL(5,2) DEFAULT 0.90,
     ativo TINYINT(1) DEFAULT 1,
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -217,12 +239,14 @@ INSERT INTO configuracao (
     webservice_uf, emitente_uf, webservice_ambiente, 
     caminho_schemas, caminho_certificado, senha_certificado, 
     caminho_xml, gerar_pdf, porta_servidor, serie_nfe, 
-    natureza_operacao, finalidade_emissao, consumidor_final, presenca_comprador
+    natureza_operacao, finalidade_emissao, consumidor_final, presenca_comprador,
+    cst_rtc_padrao, cclasstrib_rtc_padrao, pibs_uf_padrao, pibs_mun_padrao, pcbs_padrao, tpag_padrao
 ) VALUES (
     'BA', 'BA', '2', 
     '/home/schemas/', '/home/certificados/certificado.pfx', '123456', 
     '/home/xml', '1', '3435', '1', 
-    'VENDA', '1', '1', '1'
+    'VENDA', '1', '1', '1',
+    '000', '000001', 0.10, 0.00, 0.90, '01'
 );
 
 -- Inserir empresa padrão (dados fictícios)
@@ -241,20 +265,57 @@ INSERT INTO empresa (
 -- Inserir alguns produtos de exemplo
 INSERT INTO produto (
     cprod, cean, xprod, ncm, cfop, ucom, vuncom,
-    cest, orig, cst_icms, picms, cst_pis, ppis, cst_cofins, pcofins
+    cest, orig, cst_icms, modbc_icms, predbc_icms, picms,
+    vbcst, pst, vicmsst, vicmsdeson, mot_des_icms, vbcstret, vicmssubstituto, vicmsstret,
+    cst_pis, ppis, cst_cofins, pcofins,
+    cst_rtc, cclasstrib_rtc, pibs_uf, pibs_mun, pcbs
 ) VALUES 
 (
     '7898480650104', '7898480650104',
     'Óleo de cambio manual SAE 80W Flex Oil 1Ltl', 
     '27101932', '5102', 'UN', 13.00,
-    '0600500', '0', '00', 7.00, '01', 1.65, '01', 7.60
+    '0600500', '0', '00', '3', 0.00, 7.00,
+    0.00, 0.00, 0.00, 0.00, NULL, 0.00, 0.00, 0.00,
+    '01', 1.65, '01', 7.60,
+    '000', '000001', 0.10, 0.00, 0.90
 ),
 (
     '7890647097098', '7890647097098',
     'Caneta esferográfica azul', 
     '96081000', '5102', 'UN', 1.49,
-    '1902700', '0', '00', 18.50, '01', 1.65, '01', 7.60
+    '1902700', '0', '00', '3', 0.00, 18.50,
+    0.00, 0.00, 0.00, 0.00, NULL, 0.00, 0.00, 0.00,
+    '01', 1.65, '01', 7.60,
+    '000', '000001', 0.10, 0.00, 0.90
 );
+
+-- =============================================
+-- MIGRAÇÃO PARA BASES JÁ EXISTENTES
+-- =============================================
+
+ALTER TABLE configuracao
+    ADD COLUMN IF NOT EXISTS cst_rtc_padrao VARCHAR(3) DEFAULT '000',
+    ADD COLUMN IF NOT EXISTS cclasstrib_rtc_padrao VARCHAR(6) DEFAULT '000001',
+    ADD COLUMN IF NOT EXISTS pibs_uf_padrao DECIMAL(5,2) DEFAULT 0.10,
+    ADD COLUMN IF NOT EXISTS pibs_mun_padrao DECIMAL(5,2) DEFAULT 0.00,
+    ADD COLUMN IF NOT EXISTS pcbs_padrao DECIMAL(5,2) DEFAULT 0.90,
+    ADD COLUMN IF NOT EXISTS tpag_padrao VARCHAR(2) DEFAULT '01';
+
+ALTER TABLE produto
+    ADD COLUMN IF NOT EXISTS cst_rtc VARCHAR(3) DEFAULT '000',
+    ADD COLUMN IF NOT EXISTS cclasstrib_rtc VARCHAR(6) DEFAULT '000001',
+    ADD COLUMN IF NOT EXISTS pibs_uf DECIMAL(5,2) DEFAULT 0.10,
+    ADD COLUMN IF NOT EXISTS pibs_mun DECIMAL(5,2) DEFAULT 0.00,
+    ADD COLUMN IF NOT EXISTS pcbs DECIMAL(5,2) DEFAULT 0.90,
+    ADD COLUMN IF NOT EXISTS predbc_icms DECIMAL(5,2) DEFAULT 0.00,
+    ADD COLUMN IF NOT EXISTS vbcst DECIMAL(15,2) DEFAULT 0.00,
+    ADD COLUMN IF NOT EXISTS pst DECIMAL(5,2) DEFAULT 0.00,
+    ADD COLUMN IF NOT EXISTS vicmsst DECIMAL(15,2) DEFAULT 0.00,
+    ADD COLUMN IF NOT EXISTS vicmsdeson DECIMAL(15,2) DEFAULT 0.00,
+    ADD COLUMN IF NOT EXISTS mot_des_icms VARCHAR(2),
+    ADD COLUMN IF NOT EXISTS vbcstret DECIMAL(15,2) DEFAULT 0.00,
+    ADD COLUMN IF NOT EXISTS vicmssubstituto DECIMAL(15,2) DEFAULT 0.00,
+    ADD COLUMN IF NOT EXISTS vicmsstret DECIMAL(15,2) DEFAULT 0.00;
 
 -- Inserir alguns clientes de exemplo
 INSERT INTO cliente (

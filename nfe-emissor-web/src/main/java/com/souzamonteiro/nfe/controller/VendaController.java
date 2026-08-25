@@ -449,29 +449,7 @@ public class VendaController implements Serializable {
             JSONObject imposto = new JSONObject();
 
             // ICMS
-            JSONObject icms = new JSONObject();
-            JSONObject icms00 = new JSONObject();
-            icms00.put("orig", produto.getOrig() != null ? produto.getOrig() : "0");
-            icms00.put("CST", produto.getCstIcms() != null ? produto.getCstIcms() : "00");
-            icms00.put("modBC", "0"); // Margem de valor agregado (%)
-            icms00.put("vBC", String.format(Locale.US, "%.2f", item.getValorTotal()));
-
-            // Usar percentual do produto ou padrão para homologação
-            String pICMS;
-            if (produto.getPicms() != null) {
-                pICMS = String.format(Locale.US, "%.2f", produto.getPicms());
-            } else {
-                pICMS = "7.00"; // Valor padrão para homologação
-            }
-            icms00.put("pICMS", pICMS);
-
-            // Calcular valor do ICMS
-            BigDecimal valorICMS = item.getValorTotal()
-                .multiply(new BigDecimal(pICMS))
-                .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
-            icms00.put("vICMS", String.format(Locale.US, "%.2f", valorICMS));
-
-            icms.put("ICMS00", icms00);
+            JSONObject icms = montarIcmsJson(produto, item.getValorTotal());
             imposto.put("ICMS", icms);
 
             // PIS
@@ -518,6 +496,45 @@ public class VendaController implements Serializable {
             cofins.put("COFINSAliq", cofinsAliq);
             imposto.put("COFINS", cofins);
 
+            // RTC / IBS-CBS
+            String cstRtc = valorTexto(produto.getCstRtc(), valorTexto(config.getCstRtcPadrao(), "000"));
+            String cClassTribRtc = valorTexto(produto.getCclasstribRtc(), valorTexto(config.getCclasstribRtcPadrao(), "000001"));
+            BigDecimal pIbsUf = valorDecimal(produto.getPibsUf(), config.getPibsUfPadrao(), new BigDecimal("0.10"));
+            BigDecimal pIbsMun = valorDecimal(produto.getPibsMun(), config.getPibsMunPadrao(), BigDecimal.ZERO);
+            BigDecimal pCbs = valorDecimal(produto.getPcbs(), config.getPcbsPadrao(), new BigDecimal("0.90"));
+
+            BigDecimal vIbsUf = calcularPercentual(item.getValorTotal(), pIbsUf);
+            BigDecimal vIbsMun = calcularPercentual(item.getValorTotal(), pIbsMun);
+            BigDecimal vIbs = vIbsUf.add(vIbsMun);
+            BigDecimal vCbs = calcularPercentual(item.getValorTotal(), pCbs);
+
+            JSONObject ibscbs = new JSONObject();
+            ibscbs.put("CST", cstRtc);
+            ibscbs.put("cClassTrib", cClassTribRtc);
+
+            JSONObject gIBSCBS = new JSONObject();
+            gIBSCBS.put("vBC", formatar2(item.getValorTotal()));
+
+            JSONObject gIBSUF = new JSONObject();
+            gIBSUF.put("pIBSUF", formatar2(pIbsUf));
+            gIBSUF.put("vIBSUF", formatar2(vIbsUf));
+            gIBSCBS.put("gIBSUF", gIBSUF);
+
+            JSONObject gIBSMun = new JSONObject();
+            gIBSMun.put("pIBSMun", formatar2(pIbsMun));
+            gIBSMun.put("vIBSMun", formatar2(vIbsMun));
+            gIBSCBS.put("gIBSMun", gIBSMun);
+
+            gIBSCBS.put("vIBS", formatar2(vIbs));
+
+            JSONObject gCBS = new JSONObject();
+            gCBS.put("pCBS", formatar2(pCbs));
+            gCBS.put("vCBS", formatar2(vCbs));
+            gIBSCBS.put("gCBS", gCBS);
+
+            ibscbs.put("gIBSCBS", gIBSCBS);
+            imposto.put("IBSCBS", ibscbs);
+
             det.put("imposto", imposto);
             detArray.put(det);
         }
@@ -531,16 +548,32 @@ public class VendaController implements Serializable {
         // Calcular totais
         BigDecimal totalVenda = venda.getValorTotal();
         BigDecimal totalICMS = BigDecimal.ZERO;
+        BigDecimal totalICMSDeson = BigDecimal.ZERO;
+        BigDecimal totalBCST = BigDecimal.ZERO;
+        BigDecimal totalST = BigDecimal.ZERO;
         BigDecimal totalPIS = BigDecimal.ZERO;
         BigDecimal totalCOFINS = BigDecimal.ZERO;
+        BigDecimal totalIBSUF = BigDecimal.ZERO;
+        BigDecimal totalIBSMun = BigDecimal.ZERO;
+        BigDecimal totalIBS = BigDecimal.ZERO;
+        BigDecimal totalCBS = BigDecimal.ZERO;
 
         for (ItemVenda item : venda.getItemVendaCollection()) {
             Produto produto = item.getProdutoId();
             BigDecimal valorItem = item.getValorTotal();
 
             // ICMS
-            BigDecimal pICMS = produto.getPicms() != null ? produto.getPicms() : new BigDecimal("7.00");
-            totalICMS = totalICMS.add(valorItem.multiply(pICMS).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP));
+            BigDecimal valorIcmsItem = calcularValorIcmsItem(produto, valorItem);
+            totalICMS = totalICMS.add(valorIcmsItem);
+            if (produto.getVicmsdeson() != null) {
+                totalICMSDeson = totalICMSDeson.add(produto.getVicmsdeson());
+            }
+            if (produto.getVbcst() != null) {
+                totalBCST = totalBCST.add(produto.getVbcst());
+            }
+            if (produto.getVicmsst() != null) {
+                totalST = totalST.add(produto.getVicmsst());
+            }
 
             // PIS
             BigDecimal pPIS = produto.getPpis() != null ? produto.getPpis() : new BigDecimal("1.65");
@@ -549,14 +582,28 @@ public class VendaController implements Serializable {
             // COFINS
             BigDecimal pCOFINS = produto.getPcofins() != null ? produto.getPcofins() : new BigDecimal("7.60");
             totalCOFINS = totalCOFINS.add(valorItem.multiply(pCOFINS).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP));
+
+            // RTC / IBS-CBS
+            BigDecimal pIbsUf = valorDecimal(produto.getPibsUf(), config.getPibsUfPadrao(), new BigDecimal("0.10"));
+            BigDecimal pIbsMun = valorDecimal(produto.getPibsMun(), config.getPibsMunPadrao(), BigDecimal.ZERO);
+            BigDecimal pCbs = valorDecimal(produto.getPcbs(), config.getPcbsPadrao(), new BigDecimal("0.90"));
+
+            BigDecimal vIbsUf = calcularPercentual(valorItem, pIbsUf);
+            BigDecimal vIbsMun = calcularPercentual(valorItem, pIbsMun);
+            BigDecimal vCbs = calcularPercentual(valorItem, pCbs);
+
+            totalIBSUF = totalIBSUF.add(vIbsUf);
+            totalIBSMun = totalIBSMun.add(vIbsMun);
+            totalIBS = totalIBS.add(vIbsUf.add(vIbsMun));
+            totalCBS = totalCBS.add(vCbs);
         }
 
         icmsTot.put("vBC", String.format(Locale.US, "%.2f", totalVenda));
         icmsTot.put("vICMS", String.format(Locale.US, "%.2f", totalICMS));
-        icmsTot.put("vICMSDeson", "0.00");
+        icmsTot.put("vICMSDeson", formatar2(totalICMSDeson));
         icmsTot.put("vFCP", "0.00");
-        icmsTot.put("vBCST", "0.00");
-        icmsTot.put("vST", "0.00");
+        icmsTot.put("vBCST", formatar2(totalBCST));
+        icmsTot.put("vST", formatar2(totalST));
         icmsTot.put("vFCPST", "0.00");
         icmsTot.put("vFCPSTRet", "0.00");
         icmsTot.put("vProd", String.format(Locale.US, "%.2f", totalVenda));
@@ -572,6 +619,28 @@ public class VendaController implements Serializable {
         icmsTot.put("vNF", String.format(Locale.US, "%.2f", totalVenda));
 
         total.put("ICMSTot", icmsTot);
+
+    JSONObject ibscbsTot = new JSONObject();
+    ibscbsTot.put("vBCIBSCBS", formatar2(totalVenda));
+
+    JSONObject gIBS = new JSONObject();
+    gIBS.put("gIBSUF", new JSONObject().put("vIBSUF", formatar2(totalIBSUF)));
+    gIBS.put("gIBSMun", new JSONObject().put("vIBSMun", formatar2(totalIBSMun)));
+    gIBS.put("vIBS", formatar2(totalIBS));
+    gIBS.put("vCredPres", "0.00");
+    gIBS.put("vCredPresCondSus", "0.00");
+
+    JSONObject gCBS = new JSONObject();
+    gCBS.put("vCBS", formatar2(totalCBS));
+    gCBS.put("vDif", "0.00");
+    gCBS.put("vDevTrib", "0.00");
+    gCBS.put("vCredPres", "0.00");
+    gCBS.put("vCredPresCondSus", "0.00");
+
+    ibscbsTot.put("gIBS", gIBS);
+    ibscbsTot.put("gCBS", gCBS);
+    total.put("IBSCBSTot", ibscbsTot);
+
         infNFe.put("total", total);
 
         // 7. TRANSPORTE
@@ -584,7 +653,7 @@ public class VendaController implements Serializable {
         JSONArray detPagArray = new JSONArray();
 
         JSONObject detPag = new JSONObject();
-        detPag.put("tPag", "01"); // 01=Dinheiro
+        detPag.put("tPag", valorTexto(config.getTpagPadrao(), "01"));
         detPag.put("vPag", String.format(Locale.US, "%.2f", venda.getValorTotal()));
 
         detPagArray.put(detPag);
@@ -605,6 +674,114 @@ public class VendaController implements Serializable {
         nfeJson.put("infNFe", infNFe);
 
         return nfeJson;
+    }
+
+    private String valorTexto(String valor, String padrao) {
+        if (valor == null || valor.trim().isEmpty()) {
+            return padrao;
+        }
+        return valor.trim();
+    }
+
+    private BigDecimal valorDecimal(BigDecimal valorProduto, BigDecimal valorPadrao, BigDecimal fallback) {
+        if (valorProduto != null) {
+            return valorProduto;
+        }
+        if (valorPadrao != null) {
+            return valorPadrao;
+        }
+        return fallback;
+    }
+
+    private BigDecimal calcularPercentual(BigDecimal base, BigDecimal percentual) {
+        return base.multiply(percentual).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+    }
+
+    private JSONObject montarIcmsJson(Produto produto, BigDecimal valorItem) {
+        String cst = valorTexto(produto.getCstIcms(), "00");
+        String orig = valorTexto(produto.getOrig(), "0");
+        BigDecimal pIcms = valorDecimal(produto.getPicms(), null, new BigDecimal("7.00"));
+        String modBC = valorTexto(produto.getModbcIcms(), "3");
+
+        JSONObject icms = new JSONObject();
+
+        if ("20".equals(cst)) {
+            BigDecimal pRedBc = valorDecimal(produto.getPredbcIcms(), null, BigDecimal.ZERO);
+            BigDecimal vBcReduzida = valorItem.multiply(BigDecimal.ONE.subtract(pRedBc.divide(new BigDecimal("100"), 6, java.math.RoundingMode.HALF_UP)))
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+            BigDecimal vIcms = calcularPercentual(vBcReduzida, pIcms);
+
+            JSONObject icms20 = new JSONObject();
+            icms20.put("orig", orig);
+            icms20.put("CST", cst);
+            icms20.put("modBC", modBC);
+            icms20.put("pRedBC", formatar2(pRedBc));
+            icms20.put("vBC", formatar2(vBcReduzida));
+            icms20.put("pICMS", formatar2(pIcms));
+            icms20.put("vICMS", formatar2(vIcms));
+
+            BigDecimal vIcmsDeson = valorDecimal(produto.getVicmsdeson(), null, BigDecimal.ZERO);
+            if (vIcmsDeson.compareTo(BigDecimal.ZERO) > 0) {
+                icms20.put("vICMSDeson", formatar2(vIcmsDeson));
+                icms20.put("motDesICMS", valorTexto(produto.getMotDesIcms(), "9"));
+            }
+            icms.put("ICMS20", icms20);
+            return icms;
+        }
+
+        if ("40".equals(cst) || "41".equals(cst)) {
+            JSONObject icms40 = new JSONObject();
+            icms40.put("orig", orig);
+            icms40.put("CST", cst);
+            BigDecimal vIcmsDeson = valorDecimal(produto.getVicmsdeson(), null, BigDecimal.ZERO);
+            if (vIcmsDeson.compareTo(BigDecimal.ZERO) > 0) {
+                icms40.put("vICMSDeson", formatar2(vIcmsDeson));
+                icms40.put("motDesICMS", valorTexto(produto.getMotDesIcms(), "9"));
+            }
+            icms.put("ICMS40", icms40);
+            return icms;
+        }
+
+        if ("60".equals(cst)) {
+            JSONObject icms60 = new JSONObject();
+            icms60.put("orig", orig);
+            icms60.put("CST", cst);
+            icms60.put("vBCSTRet", formatar2(valorDecimal(produto.getVbcstret(), null, BigDecimal.ZERO)));
+            icms60.put("pST", formatar2(valorDecimal(produto.getPst(), null, BigDecimal.ZERO)));
+            icms60.put("vICMSSubstituto", formatar2(valorDecimal(produto.getVicmssubstituto(), null, BigDecimal.ZERO)));
+            icms60.put("vICMSSTRet", formatar2(valorDecimal(produto.getVicmsstret(), null, BigDecimal.ZERO)));
+            icms.put("ICMS60", icms60);
+            return icms;
+        }
+
+        JSONObject icms00 = new JSONObject();
+        icms00.put("orig", orig);
+        icms00.put("CST", "00");
+        icms00.put("modBC", modBC);
+        icms00.put("vBC", formatar2(valorItem));
+        icms00.put("pICMS", formatar2(pIcms));
+        icms00.put("vICMS", formatar2(calcularPercentual(valorItem, pIcms)));
+        icms.put("ICMS00", icms00);
+        return icms;
+    }
+
+    private BigDecimal calcularValorIcmsItem(Produto produto, BigDecimal valorItem) {
+        String cst = valorTexto(produto.getCstIcms(), "00");
+        BigDecimal pIcms = valorDecimal(produto.getPicms(), null, new BigDecimal("7.00"));
+        if ("20".equals(cst)) {
+            BigDecimal pRedBc = valorDecimal(produto.getPredbcIcms(), null, BigDecimal.ZERO);
+            BigDecimal vBcReduzida = valorItem.multiply(BigDecimal.ONE.subtract(pRedBc.divide(new BigDecimal("100"), 6, java.math.RoundingMode.HALF_UP)))
+                .setScale(2, java.math.RoundingMode.HALF_UP);
+            return calcularPercentual(vBcReduzida, pIcms);
+        }
+        if ("40".equals(cst) || "41".equals(cst) || "60".equals(cst)) {
+            return BigDecimal.ZERO;
+        }
+        return calcularPercentual(valorItem, pIcms);
+    }
+
+    private String formatar2(BigDecimal valor) {
+        return String.format(Locale.US, "%.2f", valor);
     }
     
     private String enviarParaServidor(String urlString, String json) throws Exception {

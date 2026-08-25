@@ -111,8 +111,26 @@ public class Produto implements Serializable {
     private String cstIcms;
     @Column(name = "modbc_icms")
     private String modbcIcms;
+    @Column(name = "predbc_icms")
+    private BigDecimal predbcIcms;
     @Column(name = "picms")
     private BigDecimal picms;
+    @Column(name = "vbcst")
+    private BigDecimal vbcst;
+    @Column(name = "pst")
+    private BigDecimal pst;
+    @Column(name = "vicmsst")
+    private BigDecimal vicmsst;
+    @Column(name = "vicmsdeson")
+    private BigDecimal vicmsdeson;
+    @Column(name = "mot_des_icms")
+    private String motDesIcms;
+    @Column(name = "vbcstret")
+    private BigDecimal vbcstret;
+    @Column(name = "vicmssubstituto")
+    private BigDecimal vicmssubstituto;
+    @Column(name = "vicmsstret")
+    private BigDecimal vicmsstret;
     @Column(name = "cst_pis")
     private String cstPis;
     @Column(name = "ppis")
@@ -121,6 +139,16 @@ public class Produto implements Serializable {
     private String cstCofins;
     @Column(name = "pcofins")
     private BigDecimal pcofins;
+    @Column(name = "cst_rtc")
+    private String cstRtc;
+    @Column(name = "cclasstrib_rtc")
+    private String cclasstribRtc;
+    @Column(name = "pibs_uf")
+    private BigDecimal pibsUf;
+    @Column(name = "pibs_mun")
+    private BigDecimal pibsMun;
+    @Column(name = "pcbs")
+    private BigDecimal pcbs;
     @Column(name = "ativo")
     private Boolean ativo;
     @Column(name = "data_criacao")
@@ -309,6 +337,78 @@ public class Produto implements Serializable {
         this.picms = picms;
     }
 
+    public BigDecimal getPredbcIcms() {
+        return predbcIcms;
+    }
+
+    public void setPredbcIcms(BigDecimal predbcIcms) {
+        this.predbcIcms = predbcIcms;
+    }
+
+    public BigDecimal getVbcst() {
+        return vbcst;
+    }
+
+    public void setVbcst(BigDecimal vbcst) {
+        this.vbcst = vbcst;
+    }
+
+    public BigDecimal getPst() {
+        return pst;
+    }
+
+    public void setPst(BigDecimal pst) {
+        this.pst = pst;
+    }
+
+    public BigDecimal getVicmsst() {
+        return vicmsst;
+    }
+
+    public void setVicmsst(BigDecimal vicmsst) {
+        this.vicmsst = vicmsst;
+    }
+
+    public BigDecimal getVicmsdeson() {
+        return vicmsdeson;
+    }
+
+    public void setVicmsdeson(BigDecimal vicmsdeson) {
+        this.vicmsdeson = vicmsdeson;
+    }
+
+    public String getMotDesIcms() {
+        return motDesIcms;
+    }
+
+    public void setMotDesIcms(String motDesIcms) {
+        this.motDesIcms = motDesIcms;
+    }
+
+    public BigDecimal getVbcstret() {
+        return vbcstret;
+    }
+
+    public void setVbcstret(BigDecimal vbcstret) {
+        this.vbcstret = vbcstret;
+    }
+
+    public BigDecimal getVicmssubstituto() {
+        return vicmssubstituto;
+    }
+
+    public void setVicmssubstituto(BigDecimal vicmssubstituto) {
+        this.vicmssubstituto = vicmssubstituto;
+    }
+
+    public BigDecimal getVicmsstret() {
+        return vicmsstret;
+    }
+
+    public void setVicmsstret(BigDecimal vicmsstret) {
+        this.vicmsstret = vicmsstret;
+    }
+
     public String getCstPis() {
         return cstPis;
     }
@@ -339,6 +439,46 @@ public class Produto implements Serializable {
 
     public void setPcofins(BigDecimal pcofins) {
         this.pcofins = pcofins;
+    }
+
+    public String getCstRtc() {
+        return cstRtc;
+    }
+
+    public void setCstRtc(String cstRtc) {
+        this.cstRtc = cstRtc;
+    }
+
+    public String getCclasstribRtc() {
+        return cclasstribRtc;
+    }
+
+    public void setCclasstribRtc(String cclasstribRtc) {
+        this.cclasstribRtc = cclasstribRtc;
+    }
+
+    public BigDecimal getPibsUf() {
+        return pibsUf;
+    }
+
+    public void setPibsUf(BigDecimal pibsUf) {
+        this.pibsUf = pibsUf;
+    }
+
+    public BigDecimal getPibsMun() {
+        return pibsMun;
+    }
+
+    public void setPibsMun(BigDecimal pibsMun) {
+        this.pibsMun = pibsMun;
+    }
+
+    public BigDecimal getPcbs() {
+        return pcbs;
+    }
+
+    public void setPcbs(BigDecimal pcbs) {
+        this.pcbs = pcbs;
     }
 
     public Boolean getAtivo() {

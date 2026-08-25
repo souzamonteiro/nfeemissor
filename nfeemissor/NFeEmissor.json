@@ -4,9 +4,10 @@
     "emitenteUF": "BA",
     "webserviceAmbiente": 2,
     "caminhoSchemas": "/home/roberto/schemas/",
-    "caminhoCertificado": "/home/roberto/certificados/certificado.pfx",
+    "caminhoCertificado": "/home/roberto/certificados/33630582000149.pfx",
     "senhaCertificado": "123456",
     "caminhoXML": "/home/roberto/xml",
     "gerarPDF": "1",
+    "autXMLPadrao": "13937073000156",
     "observacoes": "Arquivo de configuração para emissor de NF-e - Versão didática"
 }
