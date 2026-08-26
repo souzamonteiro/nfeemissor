@@ -3,11 +3,17 @@ package com.souzamonteiro.nfe.controller;
 import com.souzamonteiro.nfe.dao.*;
 import com.souzamonteiro.nfe.model.*;
 import com.souzamonteiro.nfe.service.PixService;
+import com.souzamonteiro.nfe.service.TributacaoCalculator;
 import com.souzamonteiro.nfe.util.GeradorQRCodePix;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.primefaces.PrimeFaces;
+import org.primefaces.model.chart.Axis;
+import org.primefaces.model.chart.AxisType;
+import org.primefaces.model.chart.BarChartModel;
+import org.primefaces.model.chart.ChartSeries;
+import org.primefaces.model.chart.PieChartModel;
 import javax.annotation.PostConstruct;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
@@ -20,8 +26,10 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -39,6 +47,7 @@ public class VendaController implements Serializable {
     private transient EmpresaDAO empresaDAO = new EmpresaDAO();
     
     private List<Venda> vendas;
+    private List<Venda> vendasRecentes;
     private Venda venda;
     private List<Cliente> clientes;
     private List<Produto> produtos;
@@ -46,17 +55,394 @@ public class VendaController implements Serializable {
     private Produto produtoSelecionado;
     private ItemVenda itemVenda;
     private boolean editando = false; // Inicialize como false
+    private String filtroStatus = "TODOS";
+    private String filtroPeriodo = "30D";
+    private String filtroRelatorioTipo = "RESUMO";
+    private String filtroRelatorioStatus = "TODOS";
+    private Date dataInicio;
+    private Date dataFim;
+    private Date filtroRelatorioInicio;
+    private Date filtroRelatorioFim;
+    private List<Venda> relatorioVendas = new ArrayList<>();
+    private BigDecimal relatorioValorTotal = BigDecimal.ZERO;
+    private BigDecimal relatorioTicketMedio = BigDecimal.ZERO;
+    private long relatorioQuantidade;
+    private long vendasHoje;
+    private long totalVendasEmitidas;
+    private long totalVendasPendentes;
+    private BigDecimal faturamentoTotal;
+    private BigDecimal faturamentoMes;
+    private BigDecimal faturamentoHoje;
+    private BigDecimal ticketMedio;
+    private BigDecimal variacaoDia;
+    private BarChartModel dashboardChart;
+    private PieChartModel statusChart;
     
     @PostConstruct
     public void init() {
         carregarVendas();
+        carregarRelatorio();
         carregarClientes();
         carregarProdutos();
     }
     
     public void carregarVendas() {
-        vendas = vendaDAO.findEmitidas();
+        vendas = obterVendasPorFiltro();
+        atualizarMetricasDashboard();
         editando = false;
+    }
+
+    public List<Venda> obterVendasPorFiltro() {
+        List<Venda> lista = vendaDAO.findAll();
+        if (lista == null) {
+            return new ArrayList<>();
+        }
+
+        if (filtroStatus != null && !"TODOS".equalsIgnoreCase(filtroStatus)) {
+            lista = aplicarFiltroStatus(lista);
+        }
+
+        if (filtroPeriodo != null && !"TODOS".equalsIgnoreCase(filtroPeriodo)) {
+            lista = aplicarFiltroPeriodo(lista);
+        }
+
+        return lista;
+    }
+
+    public List<Venda> aplicarFiltroStatus(List<Venda> lista) {
+        if (lista == null || lista.isEmpty()) {
+            return new ArrayList<>();
+        }
+        if (filtroStatus == null || "TODOS".equalsIgnoreCase(filtroStatus)) {
+            return lista;
+        }
+
+        List<Venda> filtradas = new ArrayList<>();
+        for (Venda vendaAtual : lista) {
+            if (vendaAtual != null && filtroStatus.equalsIgnoreCase(vendaAtual.getStatus())) {
+                filtradas.add(vendaAtual);
+            }
+        }
+        return filtradas;
+    }
+
+    public List<Venda> aplicarFiltroPeriodo(List<Venda> lista) {
+        if (lista == null || lista.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        Calendar inicio = Calendar.getInstance();
+        Calendar fim = Calendar.getInstance();
+
+        if ("HOJE".equalsIgnoreCase(filtroPeriodo)) {
+            inicio.setTime(new Date());
+            fim.setTime(new Date());
+            inicio.set(Calendar.HOUR_OF_DAY, 0);
+            inicio.set(Calendar.MINUTE, 0);
+            inicio.set(Calendar.SECOND, 0);
+            inicio.set(Calendar.MILLISECOND, 0);
+            fim.set(Calendar.HOUR_OF_DAY, 23);
+            fim.set(Calendar.MINUTE, 59);
+            fim.set(Calendar.SECOND, 59);
+            fim.set(Calendar.MILLISECOND, 999);
+        } else if ("7D".equalsIgnoreCase(filtroPeriodo)) {
+            inicio.add(Calendar.DAY_OF_YEAR, -6);
+            inicio.set(Calendar.HOUR_OF_DAY, 0);
+            inicio.set(Calendar.MINUTE, 0);
+            inicio.set(Calendar.SECOND, 0);
+            inicio.set(Calendar.MILLISECOND, 0);
+        } else if ("30D".equalsIgnoreCase(filtroPeriodo)) {
+            inicio.add(Calendar.DAY_OF_YEAR, -29);
+            inicio.set(Calendar.HOUR_OF_DAY, 0);
+            inicio.set(Calendar.MINUTE, 0);
+            inicio.set(Calendar.SECOND, 0);
+            inicio.set(Calendar.MILLISECOND, 0);
+        } else {
+            return lista;
+        }
+
+        List<Venda> filtradas = new ArrayList<>();
+        for (Venda vendaAtual : lista) {
+            if (vendaAtual == null || vendaAtual.getDataVenda() == null) {
+                continue;
+            }
+            Date dataVenda = vendaAtual.getDataVenda();
+            Calendar data = Calendar.getInstance();
+            data.setTime(dataVenda);
+
+            if (!data.before(inicio) && !data.after(fim)) {
+                filtradas.add(vendaAtual);
+            }
+        }
+        return filtradas;
+    }
+
+    public void aplicarFiltros() {
+        vendas = obterVendasPorFiltro();
+        atualizarMetricasDashboard();
+    }
+
+    public void limparFiltros() {
+        filtroStatus = "TODOS";
+        filtroPeriodo = "30D";
+        dataInicio = null;
+        dataFim = null;
+        carregarVendas();
+    }
+
+    public List<Venda> obterVendasRelatorio(List<Venda> base) {
+        List<Venda> lista = base == null ? new ArrayList<>() : new ArrayList<>(base);
+        if (lista.isEmpty()) {
+            return lista;
+        }
+
+        if (filtroRelatorioStatus != null && !"TODOS".equalsIgnoreCase(filtroRelatorioStatus)) {
+            List<Venda> filtradasStatus = new ArrayList<>();
+            for (Venda vendaAtual : lista) {
+                if (vendaAtual != null && filtroRelatorioStatus.equalsIgnoreCase(vendaAtual.getStatus())) {
+                    filtradasStatus.add(vendaAtual);
+                }
+            }
+            lista = filtradasStatus;
+        }
+
+        if (filtroRelatorioInicio != null || filtroRelatorioFim != null) {
+            List<Venda> filtradasData = new ArrayList<>();
+            for (Venda vendaAtual : lista) {
+                if (vendaAtual == null || vendaAtual.getDataVenda() == null) {
+                    continue;
+                }
+                Date dataVenda = vendaAtual.getDataVenda();
+                boolean ok = true;
+                if (filtroRelatorioInicio != null && dataVenda.before(filtroRelatorioInicio)) {
+                    ok = false;
+                }
+                if (filtroRelatorioFim != null && dataVenda.after(filtroRelatorioFim)) {
+                    ok = false;
+                }
+                if (ok) {
+                    filtradasData.add(vendaAtual);
+                }
+            }
+            lista = filtradasData;
+        }
+
+        if ("PENDENTES".equalsIgnoreCase(filtroRelatorioTipo)) {
+            List<Venda> pendentes = new ArrayList<>();
+            for (Venda vendaAtual : lista) {
+                if (vendaAtual != null && "PENDENTE".equalsIgnoreCase(vendaAtual.getStatus())) {
+                    pendentes.add(vendaAtual);
+                }
+            }
+            return pendentes;
+        }
+
+        if ("EMITIDAS".equalsIgnoreCase(filtroRelatorioTipo)) {
+            List<Venda> emitidas = new ArrayList<>();
+            for (Venda vendaAtual : lista) {
+                if (vendaAtual != null && "EMITIDA".equalsIgnoreCase(vendaAtual.getStatus())) {
+                    emitidas.add(vendaAtual);
+                }
+            }
+            return emitidas;
+        }
+
+        return lista;
+    }
+
+    public void carregarRelatorio() {
+        List<Venda> base = vendaDAO.findAll();
+        if (base == null) {
+            base = new ArrayList<>();
+        }
+
+        relatorioVendas = obterVendasRelatorio(base);
+        relatorioQuantidade = relatorioVendas.size();
+        relatorioValorTotal = BigDecimal.ZERO;
+        relatorioTicketMedio = BigDecimal.ZERO;
+
+        for (Venda vendaAtual : relatorioVendas) {
+            if (vendaAtual != null && vendaAtual.getValorTotal() != null) {
+                relatorioValorTotal = relatorioValorTotal.add(vendaAtual.getValorTotal());
+            }
+        }
+
+        if (relatorioQuantidade > 0 && relatorioValorTotal.compareTo(BigDecimal.ZERO) > 0) {
+            relatorioTicketMedio = relatorioValorTotal.divide(BigDecimal.valueOf(relatorioQuantidade), 2, java.math.RoundingMode.HALF_UP);
+        }
+    }
+
+    public void limparRelatorio() {
+        filtroRelatorioTipo = "RESUMO";
+        filtroRelatorioStatus = "TODOS";
+        filtroRelatorioInicio = null;
+        filtroRelatorioFim = null;
+        carregarRelatorio();
+    }
+
+    private void atualizarMetricasDashboard() {
+        vendasHoje = 0;
+        totalVendasEmitidas = 0;
+        totalVendasPendentes = 0;
+        faturamentoTotal = BigDecimal.ZERO;
+        faturamentoMes = BigDecimal.ZERO;
+        faturamentoHoje = BigDecimal.ZERO;
+        ticketMedio = BigDecimal.ZERO;
+        variacaoDia = BigDecimal.ZERO;
+
+        if (vendas == null) {
+            vendas = new ArrayList<>();
+        }
+
+        Calendar hoje = Calendar.getInstance();
+        int mesAtual = hoje.get(Calendar.MONTH);
+        int anoAtual = hoje.get(Calendar.YEAR);
+
+        Calendar ontem = Calendar.getInstance();
+        ontem.add(Calendar.DAY_OF_YEAR, -1);
+        BigDecimal faturamentoOntem = BigDecimal.ZERO;
+
+        for (Venda vendaAtual : vendas) {
+            if ("EMITIDA".equalsIgnoreCase(vendaAtual.getStatus())) {
+                totalVendasEmitidas++;
+            } else if ("PENDENTE".equalsIgnoreCase(vendaAtual.getStatus())) {
+                totalVendasPendentes++;
+            }
+
+            if (vendaAtual.getValorTotal() != null) {
+                faturamentoTotal = faturamentoTotal.add(vendaAtual.getValorTotal());
+            }
+
+            if (vendaAtual.getDataVenda() != null) {
+                Calendar dataVenda = Calendar.getInstance();
+                dataVenda.setTime(vendaAtual.getDataVenda());
+
+                if (dataVenda.get(Calendar.DAY_OF_YEAR) == hoje.get(Calendar.DAY_OF_YEAR)
+                        && dataVenda.get(Calendar.YEAR) == hoje.get(Calendar.YEAR)) {
+                    vendasHoje++;
+                    if (vendaAtual.getValorTotal() != null) {
+                        faturamentoHoje = faturamentoHoje.add(vendaAtual.getValorTotal());
+                    }
+                }
+
+                if (dataVenda.get(Calendar.DAY_OF_YEAR) == ontem.get(Calendar.DAY_OF_YEAR)
+                        && dataVenda.get(Calendar.YEAR) == ontem.get(Calendar.YEAR)) {
+                    if (vendaAtual.getValorTotal() != null) {
+                        faturamentoOntem = faturamentoOntem.add(vendaAtual.getValorTotal());
+                    }
+                }
+
+                if (dataVenda.get(Calendar.MONTH) == mesAtual
+                        && dataVenda.get(Calendar.YEAR) == anoAtual) {
+                    if (vendaAtual.getValorTotal() != null) {
+                        faturamentoMes = faturamentoMes.add(vendaAtual.getValorTotal());
+                    }
+                }
+            }
+        }
+
+        if (vendasHoje > 0) {
+            ticketMedio = faturamentoHoje.divide(BigDecimal.valueOf(vendasHoje), 2, java.math.RoundingMode.HALF_UP);
+        }
+
+        if (faturamentoOntem.compareTo(BigDecimal.ZERO) > 0) {
+            variacaoDia = faturamentoHoje.subtract(faturamentoOntem)
+                    .divide(faturamentoOntem, 4, java.math.RoundingMode.HALF_UP)
+                    .multiply(new BigDecimal("100"));
+        } else if (faturamentoHoje.compareTo(BigDecimal.ZERO) > 0) {
+            variacaoDia = new BigDecimal("100");
+        } else {
+            variacaoDia = BigDecimal.ZERO;
+        }
+
+        vendasRecentes = new ArrayList<>();
+        int qtdRecentes = 0;
+        for (int i = vendas.size() - 1; i >= 0 && qtdRecentes < 5; i--) {
+            vendasRecentes.add(vendas.get(i));
+            qtdRecentes++;
+        }
+
+        dashboardChart = criarGraficoUltimos7Dias();
+        statusChart = criarGraficoStatusOperacao();
+    }
+
+    private PieChartModel criarGraficoStatusOperacao() {
+        PieChartModel model = new PieChartModel();
+        long emitidas = totalVendasEmitidas;
+        long pendentes = totalVendasPendentes;
+        long erros = 0;
+
+        for (Venda vendaAtual : vendaDAO.findAll()) {
+            if ("ERRO".equalsIgnoreCase(vendaAtual.getStatus())) {
+                erros++;
+            }
+        }
+
+        if (emitidas > 0) {
+            model.set("Emitidas", emitidas);
+        }
+        if (pendentes > 0) {
+            model.set("Pendentes", pendentes);
+        }
+        if (erros > 0) {
+            model.set("Erros", erros);
+        }
+
+        if (emitidas == 0 && pendentes == 0 && erros == 0) {
+            model.set("Sem dados", 1);
+        }
+
+        model.setTitle("Status da operação");
+        model.setLegendPosition("e");
+        model.setShadow(false);
+        model.setShowDataLabels(true);
+        model.setDiameter(150);
+        return model;
+    }
+
+    private BarChartModel criarGraficoUltimos7Dias() {
+        BarChartModel model = new BarChartModel();
+        ChartSeries series = new ChartSeries();
+        series.setLabel("NF-e emitidas");
+
+        for (int i = 6; i >= 0; i--) {
+            Calendar data = Calendar.getInstance();
+            data.add(Calendar.DAY_OF_YEAR, -i);
+            String label = new SimpleDateFormat("dd/MM").format(data.getTime());
+            int quantidade = 0;
+
+            for (Venda vendaAtual : vendas) {
+                if (vendaAtual.getDataVenda() == null) {
+                    continue;
+                }
+
+                Calendar vendaCalendar = Calendar.getInstance();
+                vendaCalendar.setTime(vendaAtual.getDataVenda());
+
+                if (vendaCalendar.get(Calendar.DAY_OF_YEAR) == data.get(Calendar.DAY_OF_YEAR)
+                        && vendaCalendar.get(Calendar.YEAR) == data.get(Calendar.YEAR)) {
+                    quantidade++;
+                }
+            }
+
+            series.set(label, quantidade);
+        }
+
+        model.addSeries(series);
+        model.setTitle("Emissões dos últimos 7 dias");
+        model.setLegendPosition("ne");
+        model.setShowPointLabels(true);
+        model.setAnimate(true);
+        model.setShadow(false);
+
+        Axis xAxis = model.getAxis(AxisType.X);
+        xAxis.setLabel("Dia");
+
+        Axis yAxis = model.getAxis(AxisType.Y);
+        yAxis.setLabel("Quantidade");
+        yAxis.setMin(0);
+
+        return model;
     }
     
     public void novaVenda() {
@@ -466,9 +852,7 @@ public class VendaController implements Serializable {
             }
             pisAliq.put("pPIS", pPIS);
 
-            BigDecimal valorPIS = item.getValorTotal()
-                .multiply(new BigDecimal(pPIS))
-                .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+            BigDecimal valorPIS = TributacaoCalculator.calcularValorPis(produto, item.getValorTotal());
             pisAliq.put("vPIS", String.format(Locale.US, "%.2f", valorPIS));
 
             pis.put("PISAliq", pisAliq);
@@ -488,9 +872,7 @@ public class VendaController implements Serializable {
             }
             cofinsAliq.put("pCOFINS", pCOFINS);
 
-            BigDecimal valorCOFINS = item.getValorTotal()
-                .multiply(new BigDecimal(pCOFINS))
-                .divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+            BigDecimal valorCOFINS = TributacaoCalculator.calcularValorCofins(produto, item.getValorTotal());
             cofinsAliq.put("vCOFINS", String.format(Locale.US, "%.2f", valorCOFINS));
 
             cofins.put("COFINSAliq", cofinsAliq);
@@ -503,10 +885,10 @@ public class VendaController implements Serializable {
             BigDecimal pIbsMun = valorDecimal(produto.getPibsMun(), config.getPibsMunPadrao(), BigDecimal.ZERO);
             BigDecimal pCbs = valorDecimal(produto.getPcbs(), config.getPcbsPadrao(), new BigDecimal("0.90"));
 
-            BigDecimal vIbsUf = calcularPercentual(item.getValorTotal(), pIbsUf);
-            BigDecimal vIbsMun = calcularPercentual(item.getValorTotal(), pIbsMun);
+            BigDecimal vIbsUf = TributacaoCalculator.calcularValorIbsUf(produto, item.getValorTotal());
+            BigDecimal vIbsMun = TributacaoCalculator.calcularValorIbsMun(produto, item.getValorTotal());
             BigDecimal vIbs = vIbsUf.add(vIbsMun);
-            BigDecimal vCbs = calcularPercentual(item.getValorTotal(), pCbs);
+            BigDecimal vCbs = TributacaoCalculator.calcularValorCbs(produto, item.getValorTotal());
 
             JSONObject ibscbs = new JSONObject();
             ibscbs.put("CST", cstRtc);
@@ -576,21 +958,19 @@ public class VendaController implements Serializable {
             }
 
             // PIS
-            BigDecimal pPIS = produto.getPpis() != null ? produto.getPpis() : new BigDecimal("1.65");
-            totalPIS = totalPIS.add(valorItem.multiply(pPIS).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP));
+            totalPIS = totalPIS.add(TributacaoCalculator.calcularValorPis(produto, valorItem));
 
             // COFINS
-            BigDecimal pCOFINS = produto.getPcofins() != null ? produto.getPcofins() : new BigDecimal("7.60");
-            totalCOFINS = totalCOFINS.add(valorItem.multiply(pCOFINS).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP));
+            totalCOFINS = totalCOFINS.add(TributacaoCalculator.calcularValorCofins(produto, valorItem));
 
             // RTC / IBS-CBS
             BigDecimal pIbsUf = valorDecimal(produto.getPibsUf(), config.getPibsUfPadrao(), new BigDecimal("0.10"));
             BigDecimal pIbsMun = valorDecimal(produto.getPibsMun(), config.getPibsMunPadrao(), BigDecimal.ZERO);
             BigDecimal pCbs = valorDecimal(produto.getPcbs(), config.getPcbsPadrao(), new BigDecimal("0.90"));
 
-            BigDecimal vIbsUf = calcularPercentual(valorItem, pIbsUf);
-            BigDecimal vIbsMun = calcularPercentual(valorItem, pIbsMun);
-            BigDecimal vCbs = calcularPercentual(valorItem, pCbs);
+            BigDecimal vIbsUf = TributacaoCalculator.calcularValorIbsUf(produto, valorItem);
+            BigDecimal vIbsMun = TributacaoCalculator.calcularValorIbsMun(produto, valorItem);
+            BigDecimal vCbs = TributacaoCalculator.calcularValorCbs(produto, valorItem);
 
             totalIBSUF = totalIBSUF.add(vIbsUf);
             totalIBSMun = totalIBSMun.add(vIbsMun);
@@ -874,6 +1254,9 @@ public class VendaController implements Serializable {
     // *** CORREÇÃO: Getters e Setters simplificados ***
     public List<Venda> getVendas() { return vendas; }
     public void setVendas(List<Venda> vendas) { this.vendas = vendas; }
+
+    public List<Venda> getVendasRecentes() { return vendasRecentes; }
+    public void setVendasRecentes(List<Venda> vendasRecentes) { this.vendasRecentes = vendasRecentes; }
     
     public Venda getVenda() { return venda; }
     public void setVenda(Venda venda) { this.venda = venda; }
@@ -883,6 +1266,72 @@ public class VendaController implements Serializable {
     
     public List<Produto> getProdutos() { return produtos; }
     public void setProdutos(List<Produto> produtos) { this.produtos = produtos; }
+
+    public String getFiltroStatus() { return filtroStatus; }
+    public void setFiltroStatus(String filtroStatus) { this.filtroStatus = filtroStatus; }
+
+    public String getFiltroPeriodo() { return filtroPeriodo; }
+    public void setFiltroPeriodo(String filtroPeriodo) { this.filtroPeriodo = filtroPeriodo; }
+
+    public String getFiltroRelatorioTipo() { return filtroRelatorioTipo; }
+    public void setFiltroRelatorioTipo(String filtroRelatorioTipo) { this.filtroRelatorioTipo = filtroRelatorioTipo; }
+
+    public String getFiltroRelatorioStatus() { return filtroRelatorioStatus; }
+    public void setFiltroRelatorioStatus(String filtroRelatorioStatus) { this.filtroRelatorioStatus = filtroRelatorioStatus; }
+
+    public Date getFiltroRelatorioInicio() { return filtroRelatorioInicio; }
+    public void setFiltroRelatorioInicio(Date filtroRelatorioInicio) { this.filtroRelatorioInicio = filtroRelatorioInicio; }
+
+    public Date getFiltroRelatorioFim() { return filtroRelatorioFim; }
+    public void setFiltroRelatorioFim(Date filtroRelatorioFim) { this.filtroRelatorioFim = filtroRelatorioFim; }
+
+    public List<Venda> getRelatorioVendas() { return relatorioVendas; }
+    public void setRelatorioVendas(List<Venda> relatorioVendas) { this.relatorioVendas = relatorioVendas; }
+
+    public BigDecimal getRelatorioValorTotal() { return relatorioValorTotal; }
+    public void setRelatorioValorTotal(BigDecimal relatorioValorTotal) { this.relatorioValorTotal = relatorioValorTotal; }
+
+    public BigDecimal getRelatorioTicketMedio() { return relatorioTicketMedio; }
+    public void setRelatorioTicketMedio(BigDecimal relatorioTicketMedio) { this.relatorioTicketMedio = relatorioTicketMedio; }
+
+    public long getRelatorioQuantidade() { return relatorioQuantidade; }
+    public void setRelatorioQuantidade(long relatorioQuantidade) { this.relatorioQuantidade = relatorioQuantidade; }
+
+    public Date getDataInicio() { return dataInicio; }
+    public void setDataInicio(Date dataInicio) { this.dataInicio = dataInicio; }
+
+    public Date getDataFim() { return dataFim; }
+    public void setDataFim(Date dataFim) { this.dataFim = dataFim; }
+
+    public long getVendasHoje() { return vendasHoje; }
+    public void setVendasHoje(long vendasHoje) { this.vendasHoje = vendasHoje; }
+
+    public long getTotalVendasEmitidas() { return totalVendasEmitidas; }
+    public void setTotalVendasEmitidas(long totalVendasEmitidas) { this.totalVendasEmitidas = totalVendasEmitidas; }
+
+    public long getTotalVendasPendentes() { return totalVendasPendentes; }
+    public void setTotalVendasPendentes(long totalVendasPendentes) { this.totalVendasPendentes = totalVendasPendentes; }
+
+    public BigDecimal getFaturamentoTotal() { return faturamentoTotal; }
+    public void setFaturamentoTotal(BigDecimal faturamentoTotal) { this.faturamentoTotal = faturamentoTotal; }
+
+    public BigDecimal getFaturamentoMes() { return faturamentoMes; }
+    public void setFaturamentoMes(BigDecimal faturamentoMes) { this.faturamentoMes = faturamentoMes; }
+
+    public BigDecimal getFaturamentoHoje() { return faturamentoHoje; }
+    public void setFaturamentoHoje(BigDecimal faturamentoHoje) { this.faturamentoHoje = faturamentoHoje; }
+
+    public BigDecimal getTicketMedio() { return ticketMedio; }
+    public void setTicketMedio(BigDecimal ticketMedio) { this.ticketMedio = ticketMedio; }
+
+    public BigDecimal getVariacaoDia() { return variacaoDia; }
+    public void setVariacaoDia(BigDecimal variacaoDia) { this.variacaoDia = variacaoDia; }
+
+    public BarChartModel getDashboardChart() { return dashboardChart; }
+    public void setDashboardChart(BarChartModel dashboardChart) { this.dashboardChart = dashboardChart; }
+
+    public PieChartModel getStatusChart() { return statusChart; }
+    public void setStatusChart(PieChartModel statusChart) { this.statusChart = statusChart; }
     
     // *** CORREÇÃO: Usar apenas uma propriedade para o cliente ***
     public Cliente getClienteSelecionado() { 

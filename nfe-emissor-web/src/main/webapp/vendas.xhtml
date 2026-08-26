@@ -65,6 +65,26 @@
                                             rendered="#{venda.chaveNfe != null}"/>
                                 <h:outputText value="-" rendered="#{venda.chaveNfe == null}"/>
                             </p:column>
+
+                            <p:column headerText="DANFE" style="width: 220px;">
+                                <h:panelGroup rendered="#{venda.chaveNfe != null}">
+                                    <div style="display: inline-flex; gap: 6px; align-items: center; white-space: nowrap;">
+                                        <a href="#{request.contextPath}/pdf/view?chave=#{venda.chaveNfe}"
+                                           target="_blank"
+                                           class="ui-button ui-button-secondary"
+                                           style="text-decoration: none; padding: 0.38em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.8rem; line-height: 1.1; white-space: nowrap;">
+                                            ↗ Reimprimir
+                                        </a>
+                                        <a href="#{request.contextPath}/pdf/download?chave=#{venda.chaveNfe}"
+                                           target="_blank"
+                                           class="ui-button ui-button-success"
+                                           style="text-decoration: none; padding: 0.38em 0.7em; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.8rem; line-height: 1.1; white-space: nowrap;">
+                                            ↓ Baixar
+                                        </a>
+                                    </div>
+                                </h:panelGroup>
+                                <h:outputText value="-" rendered="#{venda.chaveNfe == null}"/>
+                            </p:column>
                         </p:dataTable>
                     </p:outputPanel>
 

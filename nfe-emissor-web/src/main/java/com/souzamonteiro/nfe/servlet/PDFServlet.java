@@ -9,6 +9,11 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import org.json.JSONObject;
 
 @WebServlet("/pdf/*")
 public class PDFServlet extends HttpServlet {
@@ -50,14 +55,77 @@ public class PDFServlet extends HttpServlet {
                     "Configurações não encontradas");
                 return;
             }
-            
-            String caminhoPDF = config.getCaminhoXml() + "/" + chave + ".pdf";
-            File pdfFile = new File(caminhoPDF);
-            
-            if (!pdfFile.exists()) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, 
-                    "PDF não encontrado para a chave: " + chave);
-                return;
+
+            String caminhoXML = config.getCaminhoXml();
+            String[] caminhos = new String[] {
+                caminhoXML,
+                "/home/roberto/xml",
+                "/home/xml",
+                System.getProperty("user.home") + "/xml"
+            };
+
+            String diretorioPdf = null;
+            File pdfFile = null;
+            for (String caminho : caminhos) {
+                if (caminho == null || caminho.trim().isEmpty()) continue;
+                File dir = new File(caminho);
+                File candidatoPdf = new File(dir, chave + ".pdf");
+                if (candidatoPdf.exists()) {
+                    pdfFile = candidatoPdf;
+                    diretorioPdf = dir.getAbsolutePath();
+                    break;
+                }
+            }
+
+            if (pdfFile == null) {
+                File xmlFile = null;
+                String diretorioXml = null;
+                for (String caminho : caminhos) {
+                    if (caminho == null || caminho.trim().isEmpty()) continue;
+                    File dir = new File(caminho);
+                    File candidatoXml = new File(dir, chave + ".xml");
+                    if (candidatoXml.exists()) {
+                        xmlFile = candidatoXml;
+                        diretorioXml = dir.getAbsolutePath();
+                        break;
+                    }
+                }
+
+                if (xmlFile != null) {
+                    try {
+                        String xml = new String(Files.readAllBytes(xmlFile.toPath()), StandardCharsets.UTF_8);
+                        String emitterUrl = "http://localhost:" + config.getPortaServidor() + "/NFeGerarPDF";
+                        JSONObject payload = new JSONObject();
+                        payload.put("chave", chave);
+                        payload.put("xml", xml);
+                        HttpURLConnection conn = (HttpURLConnection) new URL(emitterUrl).openConnection();
+                        conn.setRequestMethod("POST");
+                        conn.setRequestProperty("Content-Type", "application/json");
+                        conn.setDoOutput(true);
+                        try (OutputStream os = conn.getOutputStream()) {
+                            os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+                        }
+                        int code = conn.getResponseCode();
+                        if (code >= 400) {
+                            throw new RuntimeException("Erro ao gerar PDF no emissor: HTTP " + code);
+                        }
+
+                        File dirDestino = new File(diretorioXml != null ? diretorioXml : caminhoXML);
+                        dirDestino.mkdirs();
+                        pdfFile = new File(dirDestino, chave + ".pdf");
+                        if (!pdfFile.exists()) {
+                            throw new RuntimeException("PDF não foi gerado no diretório configurado: " + pdfFile.getAbsolutePath());
+                        }
+                    } catch (Exception e) {
+                        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                            "XML encontrado, mas não foi possível gerar o PDF: " + e.getMessage());
+                        return;
+                    }
+                } else {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                        "PDF e XML não encontrados para a chave: " + chave);
+                    return;
+                }
             }
             
             // Configurar headers baseados na ação

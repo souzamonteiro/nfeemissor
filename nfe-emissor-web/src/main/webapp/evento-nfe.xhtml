@@ -1,0 +1,72 @@
+<ui:composition template="template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+
+    <f:metadata>
+        <f:viewParam name="tipoEvento" value="#{eventoNfeController.tipoEvento}" />
+    </f:metadata>
+
+    <ui:define name="content">
+        <div class="p-p-4">
+            <h:form id="eventoForm">
+                <p:growl id="growl" showDetail="true" life="5000"/>
+
+                <p:card style="max-width: 900px; margin: 0 auto;">
+                    <f:facet name="title">
+                        <div class="p-d-flex p-ai-center p-jc-between">
+                            <div>
+                                <i class="pi #{eventoNfeController.tipoEvento == 'CANCELAMENTO' ? 'pi-times' : 'pi-pencil'} p-mr-2"/>
+                                <span class="form-title">#{eventoNfeController.tipoEvento == 'CANCELAMENTO' ? 'Cancelamento de NF-e' : 'Carta de Correção'}</span>
+                            </div>
+                        </div>
+                    </f:facet>
+
+                    <div class="p-fluid p-grid">
+                        <div class="p-col-12 p-md-6">
+                            <p:outputLabel for="tipoEvento" value="Tipo do evento"/>
+                            <p:selectOneMenu id="tipoEvento" value="#{eventoNfeController.tipoEvento}">
+                                <f:selectItem itemLabel="Cancelamento" itemValue="CANCELAMENTO"/>
+                                <f:selectItem itemLabel="Carta de Correção" itemValue="CARTA_CORRECAO"/>
+                                <p:ajax update="eventoForm" />
+                            </p:selectOneMenu>
+                        </div>
+
+                        <div class="p-col-12 p-md-6">
+                            <p:outputLabel for="seqEvento" value="Sequência do evento"/>
+                            <p:inputNumber id="seqEvento" value="#{eventoNfeController.numeroSequencial}" minValue="1" maxValue="20" decimalPlaces="0"/>
+                        </div>
+
+                        <div class="p-col-12">
+                            <p:outputLabel for="chaveNfe" value="Chave da NF-e"/>
+                            <p:inputText id="chaveNfe" value="#{eventoNfeController.chaveNfe}" required="true"/>
+                        </div>
+
+                        <div class="p-col-12" rendered="#{eventoNfeController.tipoEvento == 'CANCELAMENTO'}">
+                            <p:outputLabel for="protocolo" value="Número do protocolo"/>
+                            <p:inputText id="protocolo" value="#{eventoNfeController.protocolo}"/>
+                        </div>
+
+                        <div class="p-col-12">
+                            <p:outputLabel for="descricao" value="Descrição / justificativa"/>
+                            <p:inputTextarea id="descricao" value="#{eventoNfeController.descricao}" rows="5"/>
+                        </div>
+
+                        <div class="p-col-12">
+                            <p:commandButton value="Enviar evento" icon="pi pi-send" action="#{eventoNfeController.enviarEvento}" update="growl resultadoPanel" styleClass="p-mr-2"/>
+                            <p:commandButton value="Limpar" icon="pi pi-eraser" action="#{eventoNfeController.limpar}" update="eventoForm" process="@this" immediate="true" styleClass="ui-button-secondary"/>
+                        </div>
+                    </div>
+
+                    <p:outputPanel id="resultadoPanel" styleClass="p-mt-3">
+                        <p:panel header="Resultado" rendered="#{not empty eventoNfeController.resultado}">
+                            <h:outputText value="#{eventoNfeController.resultado}"/>
+                        </p:panel>
+                    </p:outputPanel>
+                </p:card>
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>

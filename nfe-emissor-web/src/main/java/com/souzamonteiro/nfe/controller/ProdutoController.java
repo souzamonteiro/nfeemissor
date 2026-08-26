@@ -42,7 +42,7 @@ public class ProdutoController implements Serializable {
         produto.setCstIcms("00");
         produto.setModbcIcms("3");
         produto.setPredbcIcms(BigDecimal.ZERO);
-        produto.setPicms(new BigDecimal("7.00"));
+        produto.setPicms(new BigDecimal("18.00"));
         produto.setVbcst(BigDecimal.ZERO);
         produto.setPst(BigDecimal.ZERO);
         produto.setVicmsst(BigDecimal.ZERO);

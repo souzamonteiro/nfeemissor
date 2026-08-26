@@ -16,26 +16,37 @@ public class LoginController implements Serializable {
     private String login;
     private String senha;
     private Usuario usuarioLogado;
-    private transient UsuarioDAO usuarioDAO = new UsuarioDAO();
+    private transient UsuarioDAO usuarioDAO;
     
     public LoginController() {
         System.out.println("=== LoginController INSTANCIADO ===");
+        this.usuarioDAO = new UsuarioDAO();
     }
     
     @PostConstruct
     public void init() {
         System.out.println("=== LoginController @PostConstruct ===");
         System.out.println("loginController hashcode: " + this.hashCode());
+        if (this.usuarioDAO == null) {
+            this.usuarioDAO = new UsuarioDAO();
+        }
+    }
+
+    private UsuarioDAO getUsuarioDAO() {
+        if (this.usuarioDAO == null) {
+            this.usuarioDAO = new UsuarioDAO();
+        }
+        return this.usuarioDAO;
     }
     
     public String login() {
         System.out.println("Tentando login com: " + login);
         try {
             // Buscar usuário no banco
-            usuarioLogado = usuarioDAO.findByLogin(login);
+            usuarioLogado = getUsuarioDAO().findByLogin(login);
             System.out.println("Usuário por login: " + usuarioLogado);
             if (usuarioLogado == null) {
-                usuarioLogado = usuarioDAO.findByEmail(login);
+                usuarioLogado = getUsuarioDAO().findByEmail(login);
                 System.out.println("Usuário por email: " + usuarioLogado);
             }
             

@@ -6,7 +6,7 @@
                 xmlns:ui="http://java.sun.com/jsf/facelets">
 
     <ui:define name="content">
-        <div class="p-p-4">
+        <div class="p-p-4 dashboard-page">
             <div class="p-grid">
                 <div class="p-col-12">
                     <p:card>
@@ -16,81 +16,271 @@
                                 <span>Dashboard</span>
                             </div>
                         </f:facet>
-                        <f:facet name="content">
-                            <div class="p-grid">
-                                <div class="p-col-12 p-md-4">
-                                    <p:card style="background: #4CAF50; color: white;">
-                                        <f:facet name="title">
-                                            <div class="p-d-flex p-ai-center">
-                                                <i class="pi pi-shopping-cart p-mr-2"></i>
-                                                <span>Vendas Hoje</span>
-                                            </div>
-                                        </f:facet>
-                                        <f:facet name="content">
-                                            <h1 style="font-size: 2.5rem; margin: 0; text-align: center;">0</h1>
-                                            <p style="text-align: center; margin: 0;">NF-e emitidas</p>
-                                        </f:facet>
-                                    </p:card>
+
+                        <h:form id="dashboardFilterForm" styleClass="dashboard-filter-form">
+                            <div class="dashboard-toolbar">
+                                <div class="dashboard-filter-group">
+                                    <span class="dashboard-filter-label">Período</span>
+                                    <p:selectOneButton value="#{vendaController.filtroPeriodo}" styleClass="dashboard-period-picker">
+                                        <f:selectItem itemLabel="Hoje" itemValue="HOJE" />
+                                        <f:selectItem itemLabel="7 dias" itemValue="7D" />
+                                        <f:selectItem itemLabel="30 dias" itemValue="30D" />
+                                        <f:selectItem itemLabel="Tudo" itemValue="TODOS" />
+                                    </p:selectOneButton>
                                 </div>
 
-                                <div class="p-col-12 p-md-4">
-                                    <p:card style="background: #2196F3; color: white;">
-                                        <f:facet name="title">
-                                            <div class="p-d-flex p-ai-center">
-                                                <i class="pi pi-box p-mr-2"></i>
-                                                <span>Produtos</span>
-                                            </div>
-                                        </f:facet>
-                                        <f:facet name="content">
-                                            <h1 style="font-size: 2.5rem; margin: 0; text-align: center;">#{produtoController.produtos.size()}</h1>
-                                            <p style="text-align: center; margin: 0;">Cadastrados</p>
-                                        </f:facet>
-                                    </p:card>
+                                <div class="dashboard-filter-group">
+                                    <span class="dashboard-filter-label">Status</span>
+                                    <p:selectOneMenu value="#{vendaController.filtroStatus}" styleClass="dashboard-status-filter" panelStyleClass="dashboard-status-panel">
+                                        <f:selectItem itemLabel="Todos" itemValue="TODOS" />
+                                        <f:selectItem itemLabel="Emitidas" itemValue="EMITIDA" />
+                                        <f:selectItem itemLabel="Pendentes" itemValue="PENDENTE" />
+                                    </p:selectOneMenu>
                                 </div>
 
-                                <div class="p-col-12 p-md-4">
-                                    <p:card style="background: #FF9800; color: white;">
-                                        <f:facet name="title">
-                                            <div class="p-d-flex p-ai-center">
-                                                <i class="pi pi-users p-mr-2"></i>
-                                                <span>Clientes</span>
-                                            </div>
-                                        </f:facet>
-                                        <f:facet name="content">
-                                            <h1 style="font-size: 2.5rem; margin: 0; text-align: center;">#{clienteController.clientes.size()}</h1>
-                                            <p style="text-align: center; margin: 0;">Cadastrados</p>
-                                        </f:facet>
-                                    </p:card>
+                                <div class="dashboard-filter-actions">
+                                    <p:commandButton value="Aplicar" icon="pi pi-filter" action="#{vendaController.aplicarFiltros}" update="dashboardContent" styleClass="ui-button-primary compact-button" />
+                                    <p:commandButton value="Limpar" icon="pi pi-undo" action="#{vendaController.limparFiltros}" update="@form" styleClass="ui-button-secondary compact-button" />
                                 </div>
                             </div>
 
-                            <div class="p-mt-4">
-                                <h:form>
+                            <p:outputPanel id="dashboardContent" styleClass="p-grid">
+                                <div class="p-col-12 p-md-3">
+                                    <div class="dashboard-card card-success">
+                                        <i class="pi pi-shopping-cart" style="color: #4CAF50;"></i>
+                                        <p class="dashboard-label">Vendas hoje</p>
+                                        <h1>#{vendaController.vendasHoje}</h1>
+                                        <p>NF-e emitidas no dia</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-col-12 p-md-3">
+                                    <div class="dashboard-card card-info">
+                                        <i class="pi pi-wallet" style="color: #2196F3;"></i>
+                                        <p class="dashboard-label">Faturamento hoje</p>
+                                        <h1>
+                                            <h:outputText value="#{vendaController.faturamentoHoje}">
+                                                <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
+                                            </h:outputText>
+                                        </h1>
+                                        <p>Receita do dia</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-col-12 p-md-3">
+                                    <div class="dashboard-card card-warning">
+                                        <i class="pi pi-chart-line" style="color: #FF9800;"></i>
+                                        <p class="dashboard-label">Ticket médio</p>
+                                        <h1>
+                                            <h:outputText value="#{vendaController.ticketMedio}">
+                                                <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
+                                            </h:outputText>
+                                        </h1>
+                                        <p>Por operação emitida</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-col-12 p-md-3">
+                                    <div class="dashboard-card card-info">
+                                        <i class="pi pi-arrow-up" style="color: #673AB7;"></i>
+                                        <p class="dashboard-label">Variação x ontem</p>
+                                        <h1 class="trend-value positive">#{vendaController.variacaoDia}%</h1>
+                                        <p>Comparativo diário</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-col-12 p-mt-3 executive-strip" style="display: block; width: 100%;">
+                                    <div class="p-grid">
+                                        <div class="p-col-12 p-md-4">
+                                            <div class="executive-card executive-card-green">
+                                                <div class="executive-header">
+                                                    <span>Faturamento mês</span>
+                                                    <i class="pi pi-wallet"></i>
+                                                </div>
+                                                <h2>
+                                                    <h:outputText value="#{vendaController.faturamentoMes}">
+                                                        <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
+                                                    </h:outputText>
+                                                </h2>
+                                                <div class="executive-meta">
+                                                    <span>Acumulado do mês</span>
+                                                    <strong>#{vendaController.totalVendasEmitidas} NF-e</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="p-col-12 p-md-4">
+                                            <div class="executive-card executive-card-blue">
+                                                <div class="executive-header">
+                                                    <span>Comparativo mensal</span>
+                                                    <i class="pi pi-chart-line"></i>
+                                                </div>
+                                                <h2>
+                                                    <h:outputText value="#{vendaController.faturamentoTotal}">
+                                                        <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
+                                                    </h:outputText>
+                                                </h2>
+                                                <div class="executive-meta">
+                                                    <span>Volume total</span>
+                                                    <strong>#{vendaController.vendasHoje} hoje</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="p-col-12 p-md-4">
+                                            <div class="executive-card executive-card-orange">
+                                                <div class="executive-header">
+                                                    <span>Performance</span>
+                                                    <i class="pi pi-flag"></i>
+                                                </div>
+                                                <h2>#{vendaController.variacaoDia}%</h2>
+                                                <div class="executive-meta">
+                                                    <span>Variação x ontem</span>
+                                                    <strong>#{vendaController.totalVendasPendentes} pendentes</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-col-12 p-mt-3">
+                                    <div class="p-grid">
+                                        <div class="p-col-12 p-md-8">
+                                            <p:card styleClass="dashboard-panel">
+                                                <f:facet name="title">
+                                                    <div class="p-d-flex p-ai-center">
+                                                        <i class="pi pi-chart-bar p-mr-2"></i>
+                                                        <span>Evolução do volume</span>
+                                                    </div>
+                                                </f:facet>
+                                                <div class="trend-bars">
+                                                    <div class="trend-bar-item">
+                                                        <span>Hoje</span>
+                                                        <div class="trend-bar-track">
+                                                            <div class="trend-bar-fill green" style="width: #{vendaController.vendasHoje * 60}%"></div>
+                                                        </div>
+                                                        <strong>#{vendaController.vendasHoje}</strong>
+                                                    </div>
+                                                    <div class="trend-bar-item">
+                                                        <span>Mês</span>
+                                                        <div class="trend-bar-track">
+                                                            <div class="trend-bar-fill blue" style="width: #{(vendaController.totalVendasEmitidas > 0 ? (vendaController.totalVendasEmitidas * 100 / 30) : 0)}%"></div>
+                                                        </div>
+                                                        <strong>#{vendaController.totalVendasEmitidas}</strong>
+                                                    </div>
+                                                    <div class="trend-bar-item">
+                                                        <span>Pend.</span>
+                                                        <div class="trend-bar-track">
+                                                            <div class="trend-bar-fill orange" style="width: #{(vendaController.totalVendasPendentes * 100) > 100 ? 100 : (vendaController.totalVendasPendentes * 100)}%"></div>
+                                                        </div>
+                                                        <strong>#{vendaController.totalVendasPendentes}</strong>
+                                                    </div>
+                                                </div>
+                                            </p:card>
+                                        </div>
+
+                                        <div class="p-col-12 p-md-4">
+                                            <p:card styleClass="dashboard-panel compact-panel">
+                                                <f:facet name="title">
+                                                    <div class="p-d-flex p-ai-center">
+                                                        <i class="pi pi-chart-pie p-mr-2"></i>
+                                                        <span>Status da operação</span>
+                                                    </div>
+                                                </f:facet>
+                                                <div class="status-stack compact-status">
+                                                    <div class="status-pill status-green">
+                                                        <span>Emitidas</span>
+                                                        <strong>#{vendaController.totalVendasEmitidas}</strong>
+                                                    </div>
+                                                    <div class="status-pill status-orange">
+                                                        <span>Pendentes</span>
+                                                        <strong>#{vendaController.totalVendasPendentes}</strong>
+                                                    </div>
+                                                </div>
+                                            </p:card>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-col-12 p-mt-3 compact-summary">
+                                    <div class="p-grid">
+                                        <div class="p-col-12 p-md-4">
+                                            <div class="summary-block">
+                                                <span><i class="pi pi-check-circle"></i> Emitidas</span>
+                                                <strong>#{vendaController.totalVendasEmitidas}</strong>
+                                            </div>
+                                        </div>
+                                        <div class="p-col-12 p-md-4">
+                                            <div class="summary-block">
+                                                <span><i class="pi pi-clock"></i> Pendentes</span>
+                                                <strong>#{vendaController.totalVendasPendentes}</strong>
+                                            </div>
+                                        </div>
+                                        <div class="p-col-12 p-md-4">
+                                            <div class="summary-block">
+                                                <span><i class="pi pi-wallet"></i> Faturamento total</span>
+                                                <strong>
+                                                    <h:outputText value="#{vendaController.faturamentoTotal}">
+                                                        <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
+                                                    </h:outputText>
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="p-col-12 p-mt-4">
+                                    <p:card styleClass="dashboard-panel">
+                                        <f:facet name="title">
+                                            <div class="p-d-flex p-ai-center">
+                                                <i class="pi pi-list p-mr-2"></i>
+                                                <span>Últimas vendas emitidas</span>
+                                            </div>
+                                        </f:facet>
+
+                                        <p:dataTable value="#{vendaController.vendasRecentes}" var="vendaAtual" emptyMessage="Nenhuma venda emitida." rows="5" paginator="false">
+                                            <p:column headerText="NF-e">
+                                                <h:outputText value="#{vendaAtual.numeroNfe}"/>
+                                            </p:column>
+                                            <p:column headerText="Cliente">
+                                                <h:outputText value="#{vendaAtual.clienteId.xnome}"/>
+                                            </p:column>
+                                            <p:column headerText="Data">
+                                                <h:outputText value="#{vendaAtual.dataVenda}">
+                                                    <f:convertDateTime pattern="dd/MM/yyyy"/>
+                                                </h:outputText>
+                                            </p:column>
+                                            <p:column headerText="Valor">
+                                                <h:outputText value="#{vendaAtual.valorTotal}">
+                                                    <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
+                                                </h:outputText>
+                                            </p:column>
+                                            <p:column headerText="Status">
+                                                <span class="status-badge status-emitted">#{vendaAtual.status}</span>
+                                            </p:column>
+                                        </p:dataTable>
+                                    </p:card>
+                                </div>
+
+                                <div class="p-col-12 p-mt-4 quick-actions">
                                     <h3>Ações Rápidas</h3>
                                     <div class="p-grid">
                                         <div class="p-col-12 p-md-3">
-                                            <p:commandButton value="Nova Venda" icon="pi pi-plus" 
-                                                           outcome="vendas" style="width: 100%;"/>
+                                            <p:button value="Nova Venda" icon="pi pi-plus" outcome="/vendas.xhtml" styleClass="quick-action-button quick-action-primary" style="width: 100%;"/>
                                         </div>
                                         <div class="p-col-12 p-md-3">
-                                            <p:commandButton value="Cadastrar Produto" icon="pi pi-box" 
-                                                           outcome="produtos" rendered="#{loginController.isAdmin()}" 
-                                                           style="width: 100%;"/>
+                                            <p:button value="Cadastrar Produto" icon="pi pi-box" outcome="/produtos.xhtml" rendered="#{loginController.isAdmin()}" styleClass="quick-action-button quick-action-secondary" style="width: 100%;"/>
                                         </div>
                                         <div class="p-col-12 p-md-3">
-                                            <p:commandButton value="Cadastrar Cliente" icon="pi pi-user-plus" 
-                                                           outcome="clientes" rendered="#{loginController.isAdmin()}" 
-                                                           style="width: 100%;"/>
+                                            <p:button value="Cadastrar Cliente" icon="pi pi-user-plus" outcome="/clientes.xhtml" rendered="#{loginController.isAdmin()}" styleClass="quick-action-button quick-action-tertiary" style="width: 100%;"/>
                                         </div>
                                         <div class="p-col-12 p-md-3">
-                                            <p:commandButton value="Configurações" icon="pi pi-cog" 
-                                                           outcome="configuracao" rendered="#{loginController.isAdmin()}" 
-                                                           style="width: 100%;"/>
+                                            <p:button value="Configurações" icon="pi pi-cog" outcome="/configuracao.xhtml" rendered="#{loginController.isAdmin()}" styleClass="quick-action-button quick-action-quaternary" style="width: 100%;"/>
                                         </div>
                                     </div>
-                                </h:form>
-                            </div>
-                        </f:facet>
+                                </div>
+                            </p:outputPanel>
+                        </h:form>
                     </p:card>
                 </div>
             </div>

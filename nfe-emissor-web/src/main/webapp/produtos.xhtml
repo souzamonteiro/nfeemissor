@@ -236,12 +236,6 @@
                                         </div>
 
                                         <div class="p-col-12 p-md-4">
-                                            <p:outputLabel for="vIcmsDeson" value="Valor do ICMS Desonerado (R$)"/>
-                                            <p:inputNumber id="vIcmsDeson" value="#{produtoController.produto.vicmsdeson}"
-                                                           minValue="0" decimalPlaces="2" style="width: 100%"/>
-                                        </div>
-
-                                        <div class="p-col-12 p-md-4">
                                             <p:outputLabel for="motDesIcms" value="Motivo da Desoneração do ICMS"/>
                                             <p:selectOneMenu id="motDesIcms" value="#{produtoController.produto.motDesIcms}" style="width: 100%">
                                                 <f:selectItem itemLabel="3 - Uso na agropecuária" itemValue="3"/>
@@ -255,21 +249,9 @@
                                         </div>
 
                                         <div class="p-col-12 p-md-4">
-                                            <p:outputLabel for="vbcst" value="Base de Cálculo da Substituição Tributária (R$)"/>
-                                            <p:inputNumber id="vbcst" value="#{produtoController.produto.vbcst}"
-                                                           minValue="0" decimalPlaces="2" style="width: 100%"/>
-                                        </div>
-
-                                        <div class="p-col-12 p-md-4">
-                                            <p:outputLabel for="pst" value="Alíquota da Substituição Tributária (%)"/>
+                                            <p:outputLabel for="pst" value="Alíquota do ICMS-ST (%)"/>
                                             <p:inputNumber id="pst" value="#{produtoController.produto.pst}"
                                                            minValue="0" maxValue="100" decimalPlaces="2" style="width: 100%"/>
-                                        </div>
-
-                                        <div class="p-col-12 p-md-4">
-                                            <p:outputLabel for="vicmsst" value="Valor do ICMS ST (R$)"/>
-                                            <p:inputNumber id="vicmsst" value="#{produtoController.produto.vicmsst}"
-                                                           minValue="0" decimalPlaces="2" style="width: 100%"/>
                                         </div>
 
                                         <div class="p-col-12 p-md-4">
@@ -279,14 +261,20 @@
                                         </div>
 
                                         <div class="p-col-12 p-md-4">
-                                            <p:outputLabel for="vicmssubstituto" value="Valor do ICMS do Substituto (R$)"/>
+                                            <p:outputLabel for="vicmssubstituto" value="ICMS do Substituto (R$)"/>
                                             <p:inputNumber id="vicmssubstituto" value="#{produtoController.produto.vicmssubstituto}"
                                                            minValue="0" decimalPlaces="2" style="width: 100%"/>
                                         </div>
 
                                         <div class="p-col-12 p-md-4">
-                                            <p:outputLabel for="vicmsstret" value="Valor do ICMS ST Retido (R$)"/>
+                                            <p:outputLabel for="vicmsstret" value="ICMS ST Retido (R$)"/>
                                             <p:inputNumber id="vicmsstret" value="#{produtoController.produto.vicmsstret}"
+                                                           minValue="0" decimalPlaces="2" style="width: 100%"/>
+                                        </div>
+
+                                        <div class="p-col-12 p-md-4">
+                                            <p:outputLabel for="vIcmsDeson" value="ICMS Desonerado (R$)"/>
+                                            <p:inputNumber id="vIcmsDeson" value="#{produtoController.produto.vicmsdeson}"
                                                            minValue="0" decimalPlaces="2" style="width: 100%"/>
                                         </div>
                                     </div>

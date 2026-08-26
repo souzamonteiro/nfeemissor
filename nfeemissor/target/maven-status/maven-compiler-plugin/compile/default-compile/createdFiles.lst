@@ -1,6 +1,8 @@
 com/souzamonteiro/nfeemissor/AtualizarTabelaRtc.class
+com/souzamonteiro/nfeemissor/NFeEmissor$NFeCancelamentoHandler.class
+com/souzamonteiro/nfeemissor/NFeEmissor$NFeCartaCorrecaoHandler.class
 com/souzamonteiro/nfeemissor/Config.class
-com/souzamonteiro/nfeemissor/NFeEmissor$NFeStatusServicoHandler.class
 com/souzamonteiro/nfeemissor/NFeEmissor.class
+com/souzamonteiro/nfeemissor/NFeEmissor$NFeStatusServicoHandler.class
 com/souzamonteiro/nfeemissor/NFeEmissor$NFeAutorizacaoHandler.class
 com/souzamonteiro/nfeemissor/NFeEmissor$NFeGerarPDFHandler.class

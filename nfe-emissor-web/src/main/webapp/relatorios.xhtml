@@ -1,0 +1,116 @@
+<ui:composition template="template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://java.sun.com/jsf/facelets">
+
+    <ui:define name="content">
+        <h:form id="relatorioForm">
+            <div class="report-page">
+                <div class="page-header">
+                    <div>
+                        <span class="page-kicker">Relatórios</span>
+                        <h1>Relatórios Financeiros e de Vendas</h1>
+                    </div>
+                </div>
+
+                <p:panel header="Filtros do relatório" styleClass="report-panel">
+                    <div class="report-filters">
+                        <div class="report-filter-block">
+                            <h:outputLabel value="Tipo" for="filtroTipo"/>
+                            <p:selectOneMenu id="filtroTipo" value="#{vendaController.filtroRelatorioTipo}">
+                                <f:selectItem itemLabel="Resumo" itemValue="RESUMO"/>
+                                <f:selectItem itemLabel="Emitidas" itemValue="EMITIDAS"/>
+                                <f:selectItem itemLabel="Pendentes" itemValue="PENDENTES"/>
+                            </p:selectOneMenu>
+                        </div>
+
+                        <div class="report-filter-block">
+                            <h:outputLabel value="Status" for="filtroStatus"/>
+                            <p:selectOneMenu id="filtroStatus" value="#{vendaController.filtroRelatorioStatus}">
+                                <f:selectItem itemLabel="Todos" itemValue="TODOS"/>
+                                <f:selectItem itemLabel="Emitida" itemValue="EMITIDA"/>
+                                <f:selectItem itemLabel="Pendente" itemValue="PENDENTE"/>
+                                <f:selectItem itemLabel="Erro" itemValue="ERRO"/>
+                            </p:selectOneMenu>
+                        </div>
+
+                        <div class="report-filter-block">
+                            <h:outputLabel value="Data inicial" for="dataInicio"/>
+                            <p:calendar id="dataInicio" value="#{vendaController.filtroRelatorioInicio}" pattern="dd/MM/yyyy" mask="true" locale="pt_BR" navigator="true" />
+                        </div>
+
+                        <div class="report-filter-block">
+                            <h:outputLabel value="Data final" for="dataFim"/>
+                            <p:calendar id="dataFim" value="#{vendaController.filtroRelatorioFim}" pattern="dd/MM/yyyy" mask="true" locale="pt_BR" navigator="true" />
+                        </div>
+
+                        <div class="report-actions">
+                            <p:commandButton value="Aplicar" icon="pi pi-filter" action="#{vendaController.carregarRelatorio}" update="relatorioPanel" styleClass="ui-button-primary"/>
+                            <p:commandButton value="Limpar" icon="pi pi-eraser" action="#{vendaController.limparRelatorio}" update="relatorioForm" styleClass="ui-button-secondary"/>
+                        </div>
+                    </div>
+                </p:panel>
+
+                <p:outputPanel id="relatorioPanel">
+                    <p:outputPanel id="resumoCards" styleClass="report-summary">
+                        <div class="metric-box metric-green">
+                            <span>Quantidade</span>
+                            <strong>#{vendaController.relatorioQuantidade}</strong>
+                            <small>registros no filtro</small>
+                        </div>
+                        <div class="metric-box metric-blue">
+                            <span>Faturamento</span>
+                            <strong>#{vendaController.relatorioValorTotal}</strong>
+                            <small>valor líquido do período</small>
+                        </div>
+                        <div class="metric-box metric-orange">
+                            <span>Ticket médio</span>
+                            <strong>#{vendaController.relatorioTicketMedio}</strong>
+                            <small>média por venda</small>
+                        </div>
+                    </p:outputPanel>
+
+                    <p:panel header="Detalhamento" styleClass="report-table-panel">
+                        <p:dataTable id="tabelaRelatorio"
+                                     value="#{vendaController.relatorioVendas}"
+                                     var="vendaAtual"
+                                     emptyMessage="Nenhum registro encontrado para os filtros selecionados."
+                                     rows="20"
+                                     paginator="true"
+                                     paginatorPosition="bottom">
+
+                            <p:column headerText="NF-e" style="width: 110px;">
+                                <h:outputText value="#{vendaAtual.numeroNfe}" rendered="#{vendaAtual.numeroNfe != null}" />
+                                <h:outputText value="-" rendered="#{vendaAtual.numeroNfe == null}" />
+                            </p:column>
+
+                            <p:column headerText="Cliente">
+                                <h:outputText value="#{vendaAtual.clienteId.xnome}" />
+                            </p:column>
+
+                            <p:column headerText="Data" style="width: 120px;">
+                                <h:outputText value="#{vendaAtual.dataVenda}">
+                                    <f:convertDateTime pattern="dd/MM/yyyy" />
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Valor" style="width: 140px; text-align: right;">
+                                <h:outputText value="#{vendaAtual.valorTotal}">
+                                    <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR" />
+                                </h:outputText>
+                            </p:column>
+
+                            <p:column headerText="Status" style="width: 120px;">
+                                <span class="status-badge status-#{vendaAtual.status}">
+                                    #{vendaAtual.status}
+                                </span>
+                            </p:column>
+                        </p:dataTable>
+                    </p:panel>
+                </p:outputPanel>
+            </div>
+        </h:form>
+    </ui:define>
+</ui:composition>

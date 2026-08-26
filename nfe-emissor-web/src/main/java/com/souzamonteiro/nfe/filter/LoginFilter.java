@@ -37,6 +37,7 @@ public class LoginFilter implements Filter {
         boolean isLoginRequest = requestURI.contains("login.xhtml");
         boolean isResourceRequest = requestURI.contains("/javax.faces.resource/");
         boolean isErrorPage = requestURI.contains("error.xhtml");
+        boolean isPdfRequest = requestURI.contains("/pdf/");
         
         // Verificar se usuário está logado (na sessão)
         boolean loggedIn = false;
@@ -52,7 +53,7 @@ public class LoginFilter implements Filter {
                           ", isLoginRequest=" + isLoginRequest + 
                           ", isResourceRequest=" + isResourceRequest);
         
-        if (loggedIn || isLoginRequest || isResourceRequest || isErrorPage) {
+        if (loggedIn || isLoginRequest || isResourceRequest || isErrorPage || isPdfRequest) {
             System.out.println("=== LoginFilter: Permitindo acesso ===");
             chain.doFilter(request, response);
         } else {

@@ -43,6 +43,15 @@
                                     </p:submenu>
                                     
                                     <p:menuitem value="Vendas" icon="pi pi-shopping-cart" outcome="/vendas.xhtml"/>
+                                    <p:submenu label="NF-e" icon="pi pi-file">
+                                        <p:menuitem value="Cancelar NF-e" icon="pi pi-times" outcome="/evento-nfe.xhtml">
+                                            <f:param name="tipoEvento" value="CANCELAMENTO" />
+                                        </p:menuitem>
+                                        <p:menuitem value="Carta de Correção" icon="pi pi-pencil" outcome="/evento-nfe.xhtml">
+                                            <f:param name="tipoEvento" value="CARTA_CORRECAO" />
+                                        </p:menuitem>
+                                    </p:submenu>
+                                    <p:menuitem value="Relatórios" icon="pi pi-chart-bar" outcome="/relatorios.xhtml"/>
                                     
                                     <f:facet name="options">
                                         <div class="user-info">

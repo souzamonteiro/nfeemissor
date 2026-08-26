@@ -9,6 +9,11 @@ package com.souzamonteiro.nfeemissor;
 import br.com.swconsultoria.nfe.dom.ConfiguracoesNfe;
 import br.com.swconsultoria.nfe.dom.enuns.*;
 import br.com.swconsultoria.nfe.Nfe;
+import br.com.swconsultoria.nfe.dom.Evento;
+import br.com.swconsultoria.nfe.schemas_eventos.TEnvEventoCartaCorrecao;
+import br.com.swconsultoria.nfe.schemas_eventos.TRetEnvEventoCartaCorrecao;
+import br.com.swconsultoria.nfe.schemas_eventos.TEnvEventoCancelamento;
+import br.com.swconsultoria.nfe.schemas_eventos.TRetEnvEventoCancelamento;
 import br.com.swconsultoria.nfe.schemas.TRetConsStatServ;
 import br.com.swconsultoria.nfe.schemas.TRetConsReciNFe;
 import br.com.swconsultoria.nfe.schemas.*;
@@ -18,10 +23,12 @@ import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto;
 import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto.COFINS;
 import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto.COFINS.COFINSAliq;
 import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto.COFINS.COFINSOutr;
+import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto.COFINSST;
 import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto.ICMS;
 import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto.PIS;
 import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto.PIS.PISAliq;
 import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto.PIS.PISOutr;
+import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Imposto.PISST;
 import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Det.Prod;
 import br.com.swconsultoria.nfe.schemas.TNFe.InfNFe.Total.ICMSTot;
 import br.com.swconsultoria.nfe.util.*;
@@ -39,6 +46,10 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -64,6 +75,8 @@ public class NFeEmissor {
      * Método principal - inicia o servidor HTTP
      */
     public static void main(String[] args) throws Exception {
+        garantirFonteVerdana();
+
         String caminhoNFeEmissor = System.getProperty("user.dir");
         
         // Carrega as configurações do arquivo JSON
@@ -79,6 +92,8 @@ public class NFeEmissor {
         HttpServer server = HttpServer.create(new InetSocketAddress(porta), 0);
         server.createContext("/NFeStatusServico", new NFeStatusServicoHandler());
         server.createContext("/NFeAutorizacao", new NFeAutorizacaoHandler());
+        server.createContext("/NFeCartaCorrecao", new NFeCartaCorrecaoHandler());
+        server.createContext("/NFeCancelamento", new NFeCancelamentoHandler());
         server.createContext("/NFeGerarPDF", new NFeGerarPDFHandler());
         server.setExecutor(null);
         server.start();
@@ -87,9 +102,77 @@ public class NFeEmissor {
         System.out.println("Endpoints disponíveis:");
         System.out.println("- /NFeStatusServico");
         System.out.println("- /NFeAutorizacao");
+        System.out.println("- /NFeCartaCorrecao");
+        System.out.println("- /NFeCancelamento");
         System.out.println("- /NFeGerarPDF");
     }
     
+    private static void garantirFonteVerdana() {
+        try {
+            Path userFontsDir = Paths.get(System.getProperty("user.home"), ".local", "share", "fonts");
+            Files.createDirectories(userFontsDir);
+            Path fonteVerdana = userFontsDir.resolve("Verdana.ttf");
+
+            if (Files.exists(fonteVerdana)) {
+                System.out.println("Fonte Verdana local já disponível: " + fonteVerdana);
+                return;
+            }
+
+            Path fonteBase = Paths.get("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf");
+            if (!Files.exists(fonteBase)) {
+                fonteBase = Paths.get("/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed.ttf");
+            }
+
+            if (!Files.exists(fonteBase)) {
+                System.out.println("Fonte base do sistema não encontrada para criar alias Verdana");
+                return;
+            }
+
+            String script = "from fontTools.ttLib import TTFont\n"
+                    + "from pathlib import Path\n"
+                    + "src = Path(r'" + fonteBase.toString().replace("\\", "\\\\") + "')\n"
+                    + "out = Path(r'" + fonteVerdana.toString().replace("\\", "\\\\") + "')\n"
+                    + "out.parent.mkdir(parents=True, exist_ok=True)\n"
+                    + "font = TTFont(str(src))\n"
+                    + "for record in font['name'].names:\n"
+                    + "    if record.nameID in (1, 2, 16, 17):\n"
+                    + "        if record.nameID == 1:\n"
+                    + "            record.string = 'Verdana'\n"
+                    + "        elif record.nameID == 2:\n"
+                    + "            record.string = 'Regular'\n"
+                    + "        elif record.nameID == 16:\n"
+                    + "            record.string = 'Verdana'\n"
+                    + "        elif record.nameID == 17:\n"
+                    + "            record.string = 'Regular'\n"
+                    + "font.save(str(out))\n"
+                    + "print(str(out))\n";
+
+            ProcessBuilder installBuilder = new ProcessBuilder("python3", "-m", "pip", "install", "--user", "fonttools");
+            installBuilder.redirectErrorStream(true);
+            Process installProcess = installBuilder.start();
+            String installOutput = new String(installProcess.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            installProcess.waitFor();
+
+            ProcessBuilder fontBuilder = new ProcessBuilder("python3", "-c", script);
+            fontBuilder.redirectErrorStream(true);
+            Process fontProcess = fontBuilder.start();
+            String fontOutput = new String(fontProcess.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            int exitCode = fontProcess.waitFor();
+
+            if (exitCode == 0 && Files.exists(fonteVerdana)) {
+                ProcessBuilder fcBuilder = new ProcessBuilder("fc-cache", "-f", "-v");
+                fcBuilder.redirectErrorStream(true);
+                Process fcProcess = fcBuilder.start();
+                fcProcess.waitFor();
+                System.out.println("Fonte Verdana instalada com sucesso: " + fonteVerdana + "\n" + fontOutput.trim());
+            } else {
+                System.out.println("Aviso: não foi possível preparar alias Verdana automaticamente.\n" + installOutput + "\n" + fontOutput);
+            }
+        } catch (Exception e) {
+            System.out.println("Aviso: falha ao preparar a fonte Verdana para DANFE: " + e.getMessage());
+        }
+    }
+
     /**
      * Lê o conteúdo de um arquivo
      */
@@ -111,6 +194,34 @@ public class NFeEmissor {
         }
         
         return data;
+    }
+
+    static public String normalizeRequestBody(String rawBody) {
+        if (rawBody == null) {
+            return "{}";
+        }
+
+        String normalized = rawBody.trim();
+        if (normalized.isEmpty()) {
+            return "{}";
+        }
+
+        return normalized;
+    }
+
+    static public byte[] toJsonResponseBytes(JSONObject responseJSON) {
+        String response = responseJSON.toString();
+        return response.getBytes();
+    }
+
+    static public void sendJsonResponse(HttpExchange httpExchange, JSONObject responseJSON) throws IOException {
+        byte[] responseBytes = toJsonResponseBytes(responseJSON);
+        httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        httpExchange.getResponseHeaders().add("Content-Type", "application/json");
+        httpExchange.sendResponseHeaders(200, responseBytes.length);
+        OutputStream outputStream = httpExchange.getResponseBody();
+        outputStream.write(responseBytes);
+        outputStream.close();
     }
     
     /**
@@ -151,6 +262,20 @@ public class NFeEmissor {
         setSePresente(destino, origem, "indDeduzDeson", "setIndDeduzDeson");
     }
 
+    private static void preencherCamposTributarios(Object destino, JSONObject origem) {
+        for (String chave : origem.keySet()) {
+            Object valor = origem.get(chave);
+            if (valor == null || valor instanceof JSONObject || valor instanceof JSONArray) continue;
+            String setter = "set" + Character.toUpperCase(chave.charAt(0)) + chave.substring(1);
+            try {
+                destino.getClass().getMethod(setter, String.class).invoke(destino, valor.toString());
+            } catch (ReflectiveOperationException ignored) {
+                // Em casos específicos, a chave pode ser um nome em minúsculas ou diferente do método exact.
+                // Mantém o comportamento permissivo e evita falhar por variações da estrutura JSON.
+            }
+        }
+    }
+
     private static void preencherICMSProprioST(JSONObject origem, Object destino) {
         setSePresente(destino, origem, "orig", "setOrig");
         setSePresente(destino, origem, "CST", "setCST");
@@ -164,6 +289,17 @@ public class NFeEmissor {
         setSePresente(destino, origem, "vBCST", "setVBCST");
         setSePresente(destino, origem, "pICMSST", "setPICMSST");
         setSePresente(destino, origem, "vICMSST", "setVICMSST");
+    }
+
+    private static <T> T criarEPreencher(Object classe, JSONObject origem) {
+        try {
+            @SuppressWarnings("unchecked")
+            T instancia = (T) classe;
+            preencherCamposTributarios(instancia, origem);
+            return instancia;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Erro ao preencher grupo tributário", e);
+        }
     }
 
     /** Regras estruturais: impedem misturar CST, CSOSN e a classificação RTC. */
@@ -280,6 +416,108 @@ public class NFeEmissor {
             }
         } catch (ReflectiveOperationException e) {
             throw new IllegalArgumentException("Grupo RTC incompatível com o schema instalado", e);
+        }
+    }
+
+    static class NFeCartaCorrecaoHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            String dados = "";
+            try (InputStream inputStream = httpExchange.getRequestBody(); Scanner scanner = new Scanner(inputStream)) {
+                while (scanner.hasNextLine()) {
+                    dados += scanner.nextLine();
+                }
+            }
+
+            JSONObject json = new JSONObject(normalizeRequestBody(dados));
+            JSONObject jsonInfEvento = json.getJSONObject("infEvento");
+
+            String cnpj = jsonInfEvento.getString("CNPJ");
+            String chNFe = jsonInfEvento.getString("chNFe");
+            String nSeqEvento = jsonInfEvento.getString("nSeqEvento");
+            String descEvento = jsonInfEvento.getString("descEvento");
+
+            try {
+                ConfiguracoesNfe config = Config.iniciaConfiguracoes();
+                Evento cce = new Evento();
+                cce.setCnpj(cnpj);
+                cce.setChave(chNFe);
+                cce.setDataEvento(LocalDateTime.now());
+                cce.setSequencia(Integer.parseInt(nSeqEvento));
+                cce.setMotivo(descEvento);
+
+                TEnvEventoCartaCorrecao envEvento = CartaCorrecaoUtil.montaCCe(cce, config);
+                TRetEnvEventoCartaCorrecao retorno = Nfe.cce(config, envEvento, true);
+                RetornoUtil.validaCartaCorrecao(retorno);
+
+                JSONObject responseJSON = new JSONObject();
+                retorno.getRetEvento().forEach(resultado -> {
+                    responseJSON.put("cStat", resultado.getInfEvento().getCStat());
+                    responseJSON.put("xMotivo", resultado.getInfEvento().getXMotivo());
+                    responseJSON.put("nProt", resultado.getInfEvento().getNProt());
+                });
+                responseJSON.put("xml", CartaCorrecaoUtil.criaProcEventoCCe(config, envEvento, retorno));
+                sendJsonResponse(httpExchange, responseJSON);
+            } catch (Exception e) {
+                JSONObject responseJSON = new JSONObject();
+                responseJSON.put("cStat", "000");
+                responseJSON.put("xMotivo", e.getMessage());
+                responseJSON.put("nProt", "");
+                responseJSON.put("xml", "");
+                sendJsonResponse(httpExchange, responseJSON);
+            }
+        }
+    }
+
+    static class NFeCancelamentoHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange httpExchange) throws IOException {
+            String dados = "";
+            try (InputStream inputStream = httpExchange.getRequestBody(); Scanner scanner = new Scanner(inputStream)) {
+                while (scanner.hasNextLine()) {
+                    dados += scanner.nextLine();
+                }
+            }
+
+            JSONObject json = new JSONObject(normalizeRequestBody(dados));
+            JSONObject jsonInfEvento = json.getJSONObject("infEvento");
+
+            String cnpj = jsonInfEvento.getString("CNPJ");
+            String chNFe = jsonInfEvento.getString("chNFe");
+            String nProt = jsonInfEvento.getString("nProt");
+            String nSeqEvento = jsonInfEvento.getString("nSeqEvento");
+            String descEvento = jsonInfEvento.getString("descEvento");
+
+            try {
+                ConfiguracoesNfe config = Config.iniciaConfiguracoes();
+                Evento cancelamento = new Evento();
+                cancelamento.setCnpj(cnpj);
+                cancelamento.setChave(chNFe);
+                cancelamento.setProtocolo(nProt);
+                cancelamento.setDataEvento(LocalDateTime.now());
+                cancelamento.setSequencia(Integer.parseInt(nSeqEvento));
+                cancelamento.setMotivo(descEvento);
+
+                TEnvEventoCancelamento enviEvento = CancelamentoUtil.montaCancelamento(cancelamento, config);
+                TRetEnvEventoCancelamento retorno = Nfe.cancelarNfe(config, enviEvento, true, DocumentoEnum.NFE);
+                RetornoUtil.validaCancelamento(retorno);
+
+                JSONObject responseJSON = new JSONObject();
+                retorno.getRetEvento().forEach(resultado -> {
+                    responseJSON.put("cStat", resultado.getInfEvento().getCStat());
+                    responseJSON.put("xMotivo", resultado.getInfEvento().getXMotivo());
+                    responseJSON.put("nProt", resultado.getInfEvento().getNProt());
+                });
+                responseJSON.put("xml", CancelamentoUtil.criaProcEventoCancelamento(config, enviEvento, retorno.getRetEvento().get(0)));
+                sendJsonResponse(httpExchange, responseJSON);
+            } catch (Exception e) {
+                JSONObject responseJSON = new JSONObject();
+                responseJSON.put("cStat", "000");
+                responseJSON.put("xMotivo", e.getMessage());
+                responseJSON.put("nProt", "");
+                responseJSON.put("xml", "");
+                sendJsonResponse(httpExchange, responseJSON);
+            }
         }
     }
 
@@ -532,37 +770,28 @@ public class NFeEmissor {
                     
                     // Verifica qual tipo de ICMS está presente
                     if (jsonICMS.has("ICMS00")) {
-                        JSONObject jsonICMS00 = jsonICMS.getJSONObject("ICMS00");
-                        ICMS.ICMS00 icms00 = new ICMS.ICMS00();
-                        icms00.setOrig(jsonICMS00.getString("orig"));
-                        icms00.setCST(jsonICMS00.getString("CST"));
-                        icms00.setModBC(jsonICMS00.getString("modBC"));
-                        icms00.setVBC(jsonICMS00.getString("vBC"));
-                        icms00.setPICMS(jsonICMS00.getString("pICMS"));
-                        icms00.setVICMS(jsonICMS00.getString("vICMS"));
-                        icms.setICMS00(icms00);
+                        JSONObject j = jsonICMS.getJSONObject("ICMS00");
+                        ICMS.ICMS00 v = new ICMS.ICMS00();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMS00(v);
                     }
-                    else if (jsonICMS.has("ICMSSN101")) {
-                        JSONObject jsonICMSSN101 = jsonICMS.getJSONObject("ICMSSN101");
-                        ICMS.ICMSSN101 icmsSN101 = new ICMS.ICMSSN101();
-                        icmsSN101.setOrig(jsonICMSSN101.getString("orig"));
-                        icmsSN101.setCSOSN(jsonICMSSN101.getString("CSOSN"));
-                        icmsSN101.setPCredSN(jsonICMSSN101.getString("pCredSN"));
-                        icmsSN101.setVCredICMSSN(jsonICMSSN101.getString("vCredICMSSN"));
-                        icms.setICMSSN101(icmsSN101);
-                    }
-                    else if (jsonICMS.has("ICMSSN102")) {
-                        JSONObject jsonICMSSN102 = jsonICMS.getJSONObject("ICMSSN102");
-                        ICMS.ICMSSN102 icmsSN102 = new ICMS.ICMSSN102();
-                        icmsSN102.setOrig(jsonICMSSN102.getString("orig"));
-                        icmsSN102.setCSOSN(jsonICMSSN102.getString("CSOSN"));
-                        icms.setICMSSN102(icmsSN102);
+                    else if (jsonICMS.has("ICMS02")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMS02");
+                        ICMS.ICMS02 v = new ICMS.ICMS02();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMS02(v);
                     }
                     else if (jsonICMS.has("ICMS10")) {
                         JSONObject j = jsonICMS.getJSONObject("ICMS10");
                         ICMS.ICMS10 v = new ICMS.ICMS10();
                         preencherICMSProprioST(j, v);
                         icms.setICMS10(v);
+                    }
+                    else if (jsonICMS.has("ICMS15")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMS15");
+                        ICMS.ICMS15 v = new ICMS.ICMS15();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMS15(v);
                     }
                     else if (jsonICMS.has("ICMS20")) {
                         JSONObject j = jsonICMS.getJSONObject("ICMS20");
@@ -589,14 +818,6 @@ public class NFeEmissor {
                         v.setOrig(j.getString("orig")); v.setCST(j.getString("CST")); preencherDesoneracao(j, v);
                         icms.setICMS40(v);
                     }
-                    else if (jsonICMS.has("ICMS60")) {
-                        JSONObject j = jsonICMS.getJSONObject("ICMS60");
-                        ICMS.ICMS60 v = new ICMS.ICMS60();
-                        v.setOrig(j.getString("orig")); v.setCST(j.getString("CST"));
-                        v.setVBCSTRet(j.getString("vBCSTRet")); v.setPST(j.getString("pST"));
-                        v.setVICMSSubstituto(j.optString("vICMSSubstituto", "0.00")); v.setVICMSSTRet(j.getString("vICMSSTRet"));
-                        icms.setICMS60(v);
-                    }
                     else if (jsonICMS.has("ICMS51")) {
                         JSONObject j = jsonICMS.getJSONObject("ICMS51");
                         ICMS.ICMS51 v = new ICMS.ICMS51();
@@ -605,8 +826,82 @@ public class NFeEmissor {
                         v.setPDif(j.getString("pDif")); v.setVICMSDif(j.getString("vICMSDif")); v.setVICMS(j.getString("vICMS"));
                         icms.setICMS51(v);
                     }
+                    else if (jsonICMS.has("ICMS53")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMS53");
+                        ICMS.ICMS53 v = new ICMS.ICMS53();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMS53(v);
+                    }
+                    else if (jsonICMS.has("ICMS60")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMS60");
+                        ICMS.ICMS60 v = new ICMS.ICMS60();
+                        v.setOrig(j.getString("orig")); v.setCST(j.getString("CST"));
+                        v.setVBCSTRet(j.getString("vBCSTRet")); v.setPST(j.getString("pST"));
+                        v.setVICMSSubstituto(j.optString("vICMSSubstituto", "0.00")); v.setVICMSSTRet(j.getString("vICMSSTRet"));
+                        icms.setICMS60(v);
+                    }
+                    else if (jsonICMS.has("ICMS61")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMS61");
+                        ICMS.ICMS61 v = new ICMS.ICMS61();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMS61(v);
+                    }
+                    else if (jsonICMS.has("ICMS70")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMS70");
+                        ICMS.ICMS70 v = new ICMS.ICMS70();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMS70(v);
+                    }
+                    else if (jsonICMS.has("ICMS90")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMS90");
+                        ICMS.ICMS90 v = new ICMS.ICMS90();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMS90(v);
+                    }
+                    else if (jsonICMS.has("ICMSSN101")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMSSN101");
+                        ICMS.ICMSSN101 v = new ICMS.ICMSSN101();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMSSN101(v);
+                    }
+                    else if (jsonICMS.has("ICMSSN102")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMSSN102");
+                        ICMS.ICMSSN102 v = new ICMS.ICMSSN102();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMSSN102(v);
+                    }
+                    else if (jsonICMS.has("ICMSSN201")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMSSN201");
+                        ICMS.ICMSSN201 v = new ICMS.ICMSSN201();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMSSN201(v);
+                    }
+                    else if (jsonICMS.has("ICMSSN202")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMSSN202");
+                        ICMS.ICMSSN202 v = new ICMS.ICMSSN202();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMSSN202(v);
+                    }
+                    else if (jsonICMS.has("ICMSSN500")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMSSN500");
+                        ICMS.ICMSSN500 v = new ICMS.ICMSSN500();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMSSN500(v);
+                    }
+                    else if (jsonICMS.has("ICMSST")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMSST");
+                        ICMS.ICMSST v = new ICMS.ICMSST();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMSST(v);
+                    }
+                    else if (jsonICMS.has("ICMSPart")) {
+                        JSONObject j = jsonICMS.getJSONObject("ICMSPart");
+                        ICMS.ICMSPart v = new ICMS.ICMSPart();
+                        preencherCamposTributarios(v, j);
+                        icms.setICMSPart(v);
+                    }
                     else {
-                        throw new IllegalArgumentException("Grupo ICMS não suportado no item " + numeroItem);
+                        throw new IllegalArgumentException("Grupo ICMS não suportado no item " + numeroItem + ": " + jsonICMS.keySet());
                     }
                     
                     JAXBElement<ICMS> icmsElement = new JAXBElement<>(new QName("ICMS"), ICMS.class, icms);
@@ -670,6 +965,12 @@ public class NFeEmissor {
                         JAXBElement<PIS> pisElement = new JAXBElement<>(new QName("PIS"), PIS.class, pis);
                         imposto.getContent().add(pisElement);
                     }
+                    if (jsonImposto.has("PISST")) {
+                        JSONObject j = jsonImposto.getJSONObject("PISST");
+                        PISST pisst = new PISST();
+                        preencherCamposTributarios(pisst, j);
+                        imposto.getContent().add(new JAXBElement<>(new QName("PISST"), PISST.class, pisst));
+                    }
                     
                     // COFINS
                     if (jsonImposto.has("COFINS")) {
@@ -709,6 +1010,12 @@ public class NFeEmissor {
                         
                         JAXBElement<COFINS> cofinsElement = new JAXBElement<>(new QName("COFINS"), COFINS.class, cofins);
                         imposto.getContent().add(cofinsElement);
+                    }
+                    if (jsonImposto.has("COFINSST")) {
+                        JSONObject j = jsonImposto.getJSONObject("COFINSST");
+                        COFINSST cofinsst = new COFINSST();
+                        preencherCamposTributarios(cofinsst, j);
+                        imposto.getContent().add(new JAXBElement<>(new QName("COFINSST"), COFINSST.class, cofinsst));
                     }
 
                     // DIFAL: somente quando a operação realmente se enquadrar nas regras vigentes.
@@ -922,15 +1229,52 @@ public class NFeEmissor {
     static class NFeGerarPDFHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange httpExchange) throws IOException {
-            // Implementação do serviço de geração de PDF
-            String response = "{\"cStat\":\"100\",\"xMotivo\":\"Serviço de PDF disponível\"}";
-            
-            httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            httpExchange.getResponseHeaders().add("Content-Type", "application/json");
-            httpExchange.sendResponseHeaders(200, response.getBytes().length);
-            OutputStream outputStream = httpExchange.getResponseBody();
-            outputStream.write(response.getBytes());
-            outputStream.close();
+            try {
+                String dados = "";
+                try (InputStream inputStream = httpExchange.getRequestBody(); Scanner scanner = new Scanner(inputStream)) {
+                    while (scanner.hasNextLine()) {
+                        dados += scanner.nextLine();
+                    }
+                }
+
+                JSONObject json = new JSONObject(normalizeRequestBody(dados));
+                String chave = json.optString("chave", "");
+                String xml = json.optString("xml", "");
+
+                if (xml == null || xml.trim().isEmpty()) {
+                    String caminhoArquivoConfiguracoes = System.getProperty("user.dir") + "/NFeEmissor.json";
+                    JSONObject configuracoes = new JSONObject(readFile(caminhoArquivoConfiguracoes));
+                    String caminhoXML = configuracoes.getString("caminhoXML");
+                    File xmlFile = new File(caminhoXML + "/" + chave + ".xml");
+                    if (!xmlFile.exists()) {
+                        throw new IllegalArgumentException("XML não encontrado para chave: " + chave);
+                    }
+                    xml = new String(java.nio.file.Files.readAllBytes(xmlFile.toPath()), java.nio.charset.StandardCharsets.UTF_8);
+                }
+
+                if (chave == null || chave.trim().isEmpty()) {
+                    chave = xml.contains("<chNFe>") ? xml.split("<chNFe>")[1].split("</chNFe>")[0] : "NFEMANUAL";
+                }
+
+                String caminhoArquivoConfiguracoes = System.getProperty("user.dir") + "/NFeEmissor.json";
+                JSONObject configuracoes = new JSONObject(readFile(caminhoArquivoConfiguracoes));
+                String caminhoXML = configuracoes.getString("caminhoXML");
+                String caminhoPDF = caminhoXML + "/" + chave + ".pdf";
+
+                gerarPDFDanfe(xml, caminhoPDF);
+
+                JSONObject responseJSON = new JSONObject();
+                responseJSON.put("cStat", "100");
+                responseJSON.put("xMotivo", "PDF gerado com sucesso");
+                responseJSON.put("chave", chave);
+                responseJSON.put("arquivo", caminhoPDF);
+                sendJsonResponse(httpExchange, responseJSON);
+            } catch (Exception e) {
+                JSONObject responseJSON = new JSONObject();
+                responseJSON.put("cStat", "000");
+                responseJSON.put("xMotivo", e.getMessage());
+                sendJsonResponse(httpExchange, responseJSON);
+            }
         }
     }
     
