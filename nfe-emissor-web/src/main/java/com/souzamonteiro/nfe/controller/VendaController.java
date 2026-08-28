@@ -57,6 +57,7 @@ public class VendaController implements Serializable {
     private boolean editando = false; // Inicialize como false
     private String filtroStatus = "TODOS";
     private String filtroPeriodo = "30D";
+    private String filtroOperacoesRecentes = "TODOS";
     private String filtroRelatorioTipo = "RESUMO";
     private String filtroRelatorioStatus = "TODOS";
     private Date dataInicio;
@@ -188,6 +189,10 @@ public class VendaController implements Serializable {
         dataInicio = null;
         dataFim = null;
         carregarVendas();
+    }
+
+    public void aplicarFiltroOperacoesRecentes() {
+        atualizarMetricasDashboard();
     }
 
     public List<Venda> obterVendasRelatorio(List<Venda> base) {
@@ -355,10 +360,17 @@ public class VendaController implements Serializable {
             variacaoDia = BigDecimal.ZERO;
         }
 
+        List<Venda> recentesVisiveis = new ArrayList<>();
+        for (Venda vendaAtual : vendas) {
+            if ("TODOS".equalsIgnoreCase(filtroOperacoesRecentes) || filtroOperacoesRecentes.equalsIgnoreCase(vendaAtual.getStatus())) {
+                recentesVisiveis.add(vendaAtual);
+            }
+        }
+
         vendasRecentes = new ArrayList<>();
         int qtdRecentes = 0;
-        for (int i = vendas.size() - 1; i >= 0 && qtdRecentes < 5; i--) {
-            vendasRecentes.add(vendas.get(i));
+        for (int i = recentesVisiveis.size() - 1; i >= 0 && qtdRecentes < 5; i--) {
+            vendasRecentes.add(recentesVisiveis.get(i));
             qtdRecentes++;
         }
 
@@ -590,11 +602,11 @@ public class VendaController implements Serializable {
                 configuracaoDAO.save(config);
                 
                 abrirPDFAposEmissao();
-                
+
                 FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_INFO, 
-                    "Sucesso", "Venda finalizada e NF-e emitida com sucesso."));
-                
+                    new FacesMessage(FacesMessage.SEVERITY_INFO,
+                    "NF-e emitida com sucesso", "Venda finalizada. Confira o DANFE e as ações rápidas abaixo."));
+
                 carregarVendas();
             } else {
                 venda.setStatus("ERRO");
@@ -615,7 +627,15 @@ public class VendaController implements Serializable {
     }
     
     public void cancelarVenda() {
+        venda = null;
+        itemVenda = null;
+        clienteSelecionado = null;
+        produtoSelecionado = null;
+        editando = false;
         carregarVendas();
+        FacesContext.getCurrentInstance().addMessage(null,
+            new FacesMessage(FacesMessage.SEVERITY_INFO,
+            "Operação cancelada", "A venda foi descartada e o formulário foi fechado."));
     }
     
     private boolean emitirNFe(Venda venda) {
@@ -1273,6 +1293,9 @@ public class VendaController implements Serializable {
     public String getFiltroPeriodo() { return filtroPeriodo; }
     public void setFiltroPeriodo(String filtroPeriodo) { this.filtroPeriodo = filtroPeriodo; }
 
+    public String getFiltroOperacoesRecentes() { return filtroOperacoesRecentes; }
+    public void setFiltroOperacoesRecentes(String filtroOperacoesRecentes) { this.filtroOperacoesRecentes = filtroOperacoesRecentes; }
+
     public String getFiltroRelatorioTipo() { return filtroRelatorioTipo; }
     public void setFiltroRelatorioTipo(String filtroRelatorioTipo) { this.filtroRelatorioTipo = filtroRelatorioTipo; }
 
@@ -1479,16 +1502,14 @@ public class VendaController implements Serializable {
 
     // Método para abrir automaticamente após emissão
     private void abrirPDFAposEmissao() {
-        // Primeiro atualiza o componente para garantir que os dados estejam carregados
-        PrimeFaces.current().ajax().update("form:pdfDialog");
+        PrimeFaces.current().ajax().update("form:growl,form:pdfDialog");
 
-        // Depois abre o diálogo
         PrimeFaces.current().executeScript(
             "setTimeout(function() { " +
             "  if (PF('pdfDialog')) { " +
             "    PF('pdfDialog').show(); " +
             "  } " +
-            "}, 1000);"
+            "}, 200);"
         );
     }
 }

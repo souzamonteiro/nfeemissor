@@ -45,6 +45,52 @@
                             </div>
 
                             <p:outputPanel id="dashboardContent" styleClass="p-grid">
+                                <div class="p-col-12">
+                                    <p:card styleClass="dashboard-panel">
+                                        <f:facet name="title">
+                                            <div class="p-d-flex p-ai-center">
+                                                <i class="pi pi-briefcase p-mr-2"></i>
+                                                <span>Resumo da operação</span>
+                                            </div>
+                                        </f:facet>
+
+                                        <div class="p-grid">
+                                            <div class="p-col-12 p-md-3">
+                                                <div class="summary-block">
+                                                    <span><i class="pi pi-shopping-cart"></i> Vendas hoje</span>
+                                                    <strong>#{vendaController.vendasHoje}</strong>
+                                                </div>
+                                            </div>
+                                            <div class="p-col-12 p-md-3">
+                                                <div class="summary-block">
+                                                    <span><i class="pi pi-wallet"></i> Faturamento</span>
+                                                    <strong>
+                                                        <h:outputText value="#{vendaController.faturamentoHoje}">
+                                                            <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
+                                                        </h:outputText>
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                            <div class="p-col-12 p-md-3">
+                                                <div class="summary-block">
+                                                    <span><i class="pi pi-chart-line"></i> Ticket médio</span>
+                                                    <strong>
+                                                        <h:outputText value="#{vendaController.ticketMedio}">
+                                                            <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
+                                                        </h:outputText>
+                                                    </strong>
+                                                </div>
+                                            </div>
+                                            <div class="p-col-12 p-md-3">
+                                                <div class="summary-block">
+                                                    <span><i class="pi pi-clock"></i> Pendentes</span>
+                                                    <strong>#{vendaController.totalVendasPendentes}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </p:card>
+                                </div>
+
                                 <div class="p-col-12 p-md-3">
                                     <div class="dashboard-card card-success">
                                         <i class="pi pi-shopping-cart" style="color: #4CAF50;"></i>
@@ -232,52 +278,51 @@
                                 <div class="p-col-12 p-mt-4">
                                     <p:card styleClass="dashboard-panel">
                                         <f:facet name="title">
-                                            <div class="p-d-flex p-ai-center">
-                                                <i class="pi pi-list p-mr-2"></i>
-                                                <span>Últimas vendas emitidas</span>
+                                            <div class="p-d-flex p-ai-center p-jc-between p-ai-center">
+                                                <div class="p-d-flex p-ai-center">
+                                                    <i class="pi pi-list p-mr-2"></i>
+                                                    <span>Últimas operações</span>
+                                                </div>
+                                                <div class="dashboard-filter-group recent-list-filter">
+                                                    <span class="dashboard-filter-label">Status</span>
+                                                    <p:selectOneMenu value="#{vendaController.filtroOperacoesRecentes}" styleClass="dashboard-status-filter" panelStyleClass="dashboard-status-panel">
+                                                        <f:selectItem itemLabel="Todas" itemValue="TODOS" />
+                                                        <f:selectItem itemLabel="Emitidas" itemValue="EMITIDA" />
+                                                        <f:selectItem itemLabel="Pendentes" itemValue="PENDENTE" />
+                                                        <p:ajax listener="#{vendaController.aplicarFiltroOperacoesRecentes}" update="dashboardContent" />
+                                                    </p:selectOneMenu>
+                                                </div>
                                             </div>
                                         </f:facet>
 
-                                        <p:dataTable value="#{vendaController.vendasRecentes}" var="vendaAtual" emptyMessage="Nenhuma venda emitida." rows="5" paginator="false">
-                                            <p:column headerText="NF-e">
-                                                <h:outputText value="#{vendaAtual.numeroNfe}"/>
-                                            </p:column>
-                                            <p:column headerText="Cliente">
-                                                <h:outputText value="#{vendaAtual.clienteId.xnome}"/>
-                                            </p:column>
-                                            <p:column headerText="Data">
-                                                <h:outputText value="#{vendaAtual.dataVenda}">
-                                                    <f:convertDateTime pattern="dd/MM/yyyy"/>
-                                                </h:outputText>
-                                            </p:column>
-                                            <p:column headerText="Valor">
-                                                <h:outputText value="#{vendaAtual.valorTotal}">
-                                                    <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
-                                                </h:outputText>
-                                            </p:column>
-                                            <p:column headerText="Status">
-                                                <span class="status-badge status-emitted">#{vendaAtual.status}</span>
-                                            </p:column>
-                                        </p:dataTable>
+                                        <p:dataList id="recentOperationsList" value="#{vendaController.vendasRecentes}" var="vendaAtual" type="unordered" itemStyleClass="operation-item" emptyMessage="Nenhuma operação recente.">
+                                            <div class="operation-entry">
+                                                <div class="operation-main">
+                                                    <div class="operation-title">
+                                                        <strong>NF-e #{vendaAtual.numeroNfe}</strong>
+                                                        <span class="status-badge #{vendaAtual.status == 'EMITIDA' ? 'status-emitted' : (vendaAtual.status == 'PENDENTE' ? 'status-pending' : 'status-error')}">#{vendaAtual.status}</span>
+                                                    </div>
+                                                    <div class="operation-meta">
+                                                        <span><i class="pi pi-user"></i> #{vendaAtual.clienteId.xnome}</span>
+                                                        <span><i class="pi pi-calendar"></i>
+                                                            <h:outputText value="#{vendaAtual.dataVenda}">
+                                                                <f:convertDateTime pattern="dd/MM/yyyy"/>
+                                                            </h:outputText>
+                                                        </span>
+                                                        <span><i class="pi pi-wallet"></i>
+                                                            <h:outputText value="#{vendaAtual.valorTotal}">
+                                                                <f:convertNumber type="currency" currencySymbol="R$" locale="pt_BR"/>
+                                                            </h:outputText>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="operation-actions">
+                                                    <p:button value="Abrir" icon="pi pi-external-link" outcome="/vendas.xhtml" styleClass="ui-button-outlined compact-button"/>
+                                                    <p:button value="Reimprimir" icon="pi pi-print" outcome="/vendas.xhtml" rendered="#{vendaAtual.status == 'EMITIDA'}" styleClass="ui-button-secondary compact-button"/>
+                                                </div>
+                                            </div>
+                                        </p:dataList>
                                     </p:card>
-                                </div>
-
-                                <div class="p-col-12 p-mt-4 quick-actions">
-                                    <h3>Ações Rápidas</h3>
-                                    <div class="p-grid">
-                                        <div class="p-col-12 p-md-3">
-                                            <p:button value="Nova Venda" icon="pi pi-plus" outcome="/vendas.xhtml" styleClass="quick-action-button quick-action-primary" style="width: 100%;"/>
-                                        </div>
-                                        <div class="p-col-12 p-md-3">
-                                            <p:button value="Cadastrar Produto" icon="pi pi-box" outcome="/produtos.xhtml" rendered="#{loginController.isAdmin()}" styleClass="quick-action-button quick-action-secondary" style="width: 100%;"/>
-                                        </div>
-                                        <div class="p-col-12 p-md-3">
-                                            <p:button value="Cadastrar Cliente" icon="pi pi-user-plus" outcome="/clientes.xhtml" rendered="#{loginController.isAdmin()}" styleClass="quick-action-button quick-action-tertiary" style="width: 100%;"/>
-                                        </div>
-                                        <div class="p-col-12 p-md-3">
-                                            <p:button value="Configurações" icon="pi pi-cog" outcome="/configuracao.xhtml" rendered="#{loginController.isAdmin()}" styleClass="quick-action-button quick-action-quaternary" style="width: 100%;"/>
-                                        </div>
-                                    </div>
                                 </div>
                             </p:outputPanel>
                         </h:form>

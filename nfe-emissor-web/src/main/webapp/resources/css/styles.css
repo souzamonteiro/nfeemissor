@@ -27,7 +27,7 @@
     
     /* Bordas e sombras */
     --border-color: #e0e0e0;
-    --border-radius: 8px;
+    --border-radius: 4px;
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
     --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
     --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
@@ -268,26 +268,30 @@ body {
 .status-badge {
     display: inline-block;
     padding: 0.3rem 0.6rem;
-    border-radius: 999px;
+    border-radius: 4px !important;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    color: white;
 }
 
-.status-EMITIDA {
-    background: rgba(76, 175, 80, 0.12);
-    color: #2e7d32;
+.status-EMITIDA,
+.status-emitida,
+.status-emitted {
+    background: var(--success-color);
 }
 
-.status-PENDENTE {
-    background: rgba(255, 152, 0, 0.12);
-    color: #ef6c00;
+.status-PENDENTE,
+.status-pendente,
+.status-pending {
+    background: var(--warning-color);
 }
 
-.status-ERRO {
-    background: rgba(244, 67, 54, 0.12);
-    color: #c62828;
+.status-ERRO,
+.status-erro,
+.status-error {
+    background: var(--danger-color);
 }
 
 /* =========================================
@@ -363,7 +367,7 @@ body {
 }
 
 .dashboard-period-picker .ui-button {
-    border-radius: 10px !important;
+    border-radius: var(--border-radius) !important;
     margin-right: 0.25rem;
 }
 
@@ -380,6 +384,24 @@ body {
 
 .compact-button {
     min-width: 120px;
+}
+
+/* Toolbar action buttons must match the height of the adjacent inputs/selects */
+.report-actions .ui-button-text,
+.dashboard-filter-actions .ui-button-text {
+    padding: 0.85rem 1.3rem !important;
+    font-size: 0.95rem !important;
+    line-height: 1.1 !important;
+}
+
+.report-actions .ui-button-text-icon-left .ui-button-text,
+.dashboard-filter-actions .ui-button-text-icon-left .ui-button-text {
+    padding: 0.85rem 1.3rem 0.85rem 2.6rem !important;
+}
+
+.report-actions .ui-button,
+.dashboard-filter-actions .ui-button {
+    vertical-align: middle;
 }
 
 .dashboard-card {
@@ -460,17 +482,98 @@ body {
 
 .status-badge {
     display: inline-block;
-    padding: 0.35rem 0.8rem;
-    border-radius: 999px;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--border-radius);
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    color: white;
 }
 
 .status-emitted {
-    background: #e8f5e9;
-    color: #1b5e20;
+    background: var(--success-color);
+}
+
+.status-pending {
+    background: var(--warning-color);
+}
+
+.status-error {
+    background: var(--danger-color);
+}
+
+.operation-entry {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0.25rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.operation-entry:last-child {
+    border-bottom: none;
+}
+
+.operation-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.operation-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    color: #111827;
+    font-size: 0.98rem;
+}
+
+.operation-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    color: #475569;
+    font-size: 0.86rem;
+}
+
+.operation-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.operation-actions {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.ui-datatable tbody td,
+.ui-datatable thead th {
+    vertical-align: middle;
+}
+
+.operation-actions .ui-button {
+    border-radius: var(--border-radius) !important;
+}
+
+.operation-actions .ui-button-text,
+.operation-actions .ui-button-text-icon-left .ui-button-text {
+    padding: 0.4rem 0.85rem !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    line-height: 1.1 !important;
+}
+
+.operation-actions .ui-button-text-icon-left .ui-button-text {
+    padding-left: 1.9rem !important;
 }
 
 .trend-value.positive {
@@ -513,7 +616,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0.8rem 1rem;
-    border-radius: 12px;
+    border-radius: 4px !important;
     font-weight: 600;
 }
 
@@ -671,7 +774,7 @@ body {
 .quick-action-button {
     width: 100% !important;
     height: 52px !important;
-    border-radius: 14px !important;
+    border-radius: 4px !important;
     border: none !important;
     font-weight: 600 !important;
     display: flex !important;
@@ -763,8 +866,12 @@ body {
 /* =========================================
    BOTÕES
    ========================================= */
-.p-button {
-    border-radius: var(--border-radius) !important;
+.p-button,
+.ui-button,
+.p-commandbutton,
+button.ui-button,
+button.p-button {
+    border-radius: 4px !important;
     padding: 0.75rem 1.5rem !important;
     font-weight: 500 !important;
     transition: all var(--transition-speed) var(--transition-easing) !important;
@@ -1051,28 +1158,23 @@ body {
 /* Status badges */
 .status-badge {
     display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--border-radius);
+    font-size: 0.75rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.04em;
+    color: white;
 }
 
 .status-emitida {
-    background-color: rgba(76, 175, 80, 0.1);
-    color: var(--success-color);
-    border: 1px solid rgba(76, 175, 80, 0.2);
+    background-color: var(--success-color);
 }
 
 .status-pendente {
-    background-color: rgba(255, 152, 0, 0.1);
-    color: var(--warning-color);
-    border: 1px solid rgba(255, 152, 0, 0.2);
+    background-color: var(--warning-color);
 }
 
 .status-erro {
-    background-color: rgba(244, 67, 54, 0.1);
-    color: var(--danger-color);
-    border: 1px solid rgba(244, 67, 54, 0.2);
+    background-color: var(--danger-color);
 }
