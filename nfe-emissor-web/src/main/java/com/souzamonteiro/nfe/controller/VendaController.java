@@ -201,10 +201,17 @@ public class VendaController implements Serializable {
             return lista;
         }
 
-        if (filtroRelatorioStatus != null && !"TODOS".equalsIgnoreCase(filtroRelatorioStatus)) {
+        String statusRelatorio = filtroRelatorioStatus;
+        if ("PENDENTES".equalsIgnoreCase(filtroRelatorioTipo)) {
+            statusRelatorio = "PENDENTE";
+        } else if ("EMITIDAS".equalsIgnoreCase(filtroRelatorioTipo)) {
+            statusRelatorio = "EMITIDA";
+        }
+
+        if (statusRelatorio != null && !"TODOS".equalsIgnoreCase(statusRelatorio)) {
             List<Venda> filtradasStatus = new ArrayList<>();
             for (Venda vendaAtual : lista) {
-                if (vendaAtual != null && filtroRelatorioStatus.equalsIgnoreCase(vendaAtual.getStatus())) {
+                if (vendaAtual != null && statusRelatorio.equalsIgnoreCase(vendaAtual.getStatus())) {
                     filtradasStatus.add(vendaAtual);
                 }
             }
@@ -230,26 +237,6 @@ public class VendaController implements Serializable {
                 }
             }
             lista = filtradasData;
-        }
-
-        if ("PENDENTES".equalsIgnoreCase(filtroRelatorioTipo)) {
-            List<Venda> pendentes = new ArrayList<>();
-            for (Venda vendaAtual : lista) {
-                if (vendaAtual != null && "PENDENTE".equalsIgnoreCase(vendaAtual.getStatus())) {
-                    pendentes.add(vendaAtual);
-                }
-            }
-            return pendentes;
-        }
-
-        if ("EMITIDAS".equalsIgnoreCase(filtroRelatorioTipo)) {
-            List<Venda> emitidas = new ArrayList<>();
-            for (Venda vendaAtual : lista) {
-                if (vendaAtual != null && "EMITIDA".equalsIgnoreCase(vendaAtual.getStatus())) {
-                    emitidas.add(vendaAtual);
-                }
-            }
-            return emitidas;
         }
 
         return lista;

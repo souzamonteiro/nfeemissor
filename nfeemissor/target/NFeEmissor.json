@@ -8,5 +8,6 @@
     "senhaCertificado": "123456",
     "caminhoXML": "/home/roberto/xml",
     "gerarPDF": "1",
+    "autXMLPadrao": "13937073000156",
     "observacoes": "Arquivo de configuração para emissor de NF-e - Versão didática"
 }
