@@ -3,6 +3,7 @@ package com.souzamonteiro.nfe.controller;
 import com.souzamonteiro.nfe.dao.UsuarioDAO;
 import com.souzamonteiro.nfe.model.Cliente;
 import com.souzamonteiro.nfe.model.Produto;
+import com.souzamonteiro.nfe.model.ServicoEntrega;
 import com.souzamonteiro.nfe.model.Usuario;
 import com.souzamonteiro.nfe.model.Venda;
 import com.souzamonteiro.nfe.service.LojaService;
@@ -34,6 +35,9 @@ public class LojaController implements Serializable {
     private static final Logger LOG = Logger.getLogger(LojaController.class.getName());
     private final Map<Integer, Integer> carrinho = new LinkedHashMap<>();
     private Integer compraDireta;
+    private Integer servicoEntregaId = 0;
+    private BigDecimal freteExibido;
+    private final Map<Integer, String> rastreios = new LinkedHashMap<>();
     private String referencia = UUID.randomUUID().toString();
     private String busca;
     private String categoria;
@@ -55,6 +59,22 @@ public class LojaController implements Serializable {
     public boolean isCliente() { return LojaService.cliente(usuario()); }
     public boolean isEquipe() { return LojaService.equipe(usuario()); }
     public synchronized int getQuantidadeCarrinho() { return carrinho.values().stream().mapToInt(Integer::intValue).sum(); }
+    public Integer getServicoEntregaId() { return servicoEntregaId; }
+    public void setServicoEntregaId(Integer servicoEntregaId) { this.servicoEntregaId = servicoEntregaId; }
+    public Map<Integer, String> getRastreios() { return rastreios; }
+
+    public List<ServicoEntrega> getOpcoesEntrega() {
+        Usuario conta = usuario();
+        return LojaService.cliente(conta) ? new LojaService().opcoesEntrega(conta.getLojaClienteId()) : Collections.emptyList();
+    }
+
+    public BigDecimal getFreteSelecionado() {
+        if (servicoEntregaId == null || servicoEntregaId == 0) return BigDecimal.ZERO;
+        freteExibido = getOpcoesEntrega().stream().filter(opcao -> servicoEntregaId.equals(opcao.getId()))
+            .map(ServicoEntrega::getValor).findFirst().orElse(null);
+        return freteExibido == null ? BigDecimal.ZERO : freteExibido;
+    }
+
     public synchronized boolean isCompraDireta() { return compraDireta != null; }
 
     public synchronized void adicionar(Integer id) {
@@ -70,12 +90,14 @@ public class LojaController implements Serializable {
     public synchronized String comprar(Integer id) {
         new LojaService().produto(id);
         compraDireta = id;
+        servicoEntregaId = 0;
         referencia = UUID.randomUUID().toString();
         return "/loja/carrinho.xhtml?faces-redirect=true";
     }
 
     public synchronized String abrirCarrinho() {
         compraDireta = null;
+        servicoEntregaId = 0;
         referencia = UUID.randomUUID().toString();
         return "/loja/carrinho.xhtml?faces-redirect=true";
     }
@@ -104,15 +126,17 @@ public class LojaController implements Serializable {
     }
 
     public BigDecimal getTotal() {
-        return getLinhas().stream().map(Linha::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+        return getLinhas().stream().map(Linha::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add)
+            .add(getFreteSelecionado());
     }
 
     public synchronized String finalizar() {
         if (!isCliente()) return "/loja/entrar.xhtml?faces-redirect=true";
         try {
-            Integer id = new LojaService().finalizar(usuario().getId(), referencia, itens());
+            Integer id = new LojaService().finalizar(usuario().getId(), referencia, itens(), servicoEntregaId, freteExibido);
             if (compraDireta == null) carrinho.clear();
             compraDireta = null;
+            servicoEntregaId = 0;
             referencia = UUID.randomUUID().toString();
             return "/loja/pedidos.xhtml?faces-redirect=true&pedido=" + id;
         } catch (RuntimeException e) {
@@ -206,6 +230,17 @@ public class LojaController implements Serializable {
 
     public void retirar(Integer id) {
         operar(() -> new LojaService().registrarRetirada(id, usuario().getId()));
+    }
+
+    public void enviar(Integer id) {
+        operar(() -> {
+            new LojaService().registrarEnvio(id, usuario().getId(), rastreios.get(id));
+            rastreios.remove(id);
+        });
+    }
+
+    public void entregar(Integer id) {
+        operar(() -> new LojaService().registrarEntrega(id, usuario().getId()));
     }
 
     public String qrCode(Venda pedido) {

@@ -6,6 +6,7 @@ import com.souzamonteiro.nfe.model.Empresa;
 import com.souzamonteiro.nfe.model.ItemVenda;
 import com.souzamonteiro.nfe.model.Produto;
 import com.souzamonteiro.nfe.model.Usuario;
+import com.souzamonteiro.nfe.model.ServicoEntrega;
 import com.souzamonteiro.nfe.model.Venda;
 import com.souzamonteiro.nfe.util.HibernateUtil;
 import java.math.BigDecimal;
@@ -85,7 +86,25 @@ public class LojaService {
         });
     }
 
-    public Integer finalizar(Integer usuarioId, String referencia, Map<Integer, Integer> carrinho) {
+    public List<ServicoEntrega> opcoesEntrega(Integer clienteId) {
+        if (clienteId == null) return Collections.emptyList();
+        return transacao(em -> {
+            Cliente cliente = em.find(Cliente.class, clienteId);
+            return cliente == null ? Collections.emptyList() : opcoesEntrega(em, cliente.getCep());
+        });
+    }
+
+    private List<ServicoEntrega> opcoesEntrega(EntityManager em, String cep) {
+        if (cep == null || !cep.matches("[0-9]{8}")) return Collections.emptyList();
+        return em.createQuery(
+            "SELECT s FROM ServicoEntrega s JOIN FETCH s.transportadora t WHERE s.ativo = true AND t.ativa = true "
+                + "AND s.cepInicio <= :cep AND s.cepFim >= :cep ORDER BY s.valor, s.prazoDias, s.id",
+            ServicoEntrega.class
+        ).setParameter("cep", cep).getResultList();
+    }
+
+    public Integer finalizar(Integer usuarioId, String referencia, Map<Integer, Integer> carrinho,
+                              Integer servicoEntregaId, BigDecimal freteExibido) {
         return transacao(em -> {
             Usuario usuario = em.find(Usuario.class, usuarioId, LockModeType.PESSIMISTIC_WRITE);
             if (!cliente(usuario) || !Boolean.TRUE.equals(usuario.getAtivo()) || usuario.getLojaClienteId() == null) {
@@ -103,7 +122,17 @@ public class LojaService {
             venda.setDataVenda(agora);
             venda.setDataCriacao(agora);
             venda.setStatus("AGUARDANDO_PIX");
-            venda.setClienteId(em.getReference(Cliente.class, usuario.getLojaClienteId()));
+            Cliente cliente = em.find(Cliente.class, usuario.getLojaClienteId());
+            venda.setClienteId(cliente);
+            if (servicoEntregaId != null && servicoEntregaId != 0) {
+                ServicoEntrega servico = opcoesEntrega(em, cliente.getCep()).stream()
+                    .filter(opcao -> servicoEntregaId.equals(opcao.getId())).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Este serviço não atende mais ao seu CEP. Escolha outra opção."));
+                if (freteExibido == null || servico.getValor().compareTo(freteExibido) != 0) {
+                    throw new IllegalArgumentException("Confira o preço atualizado do frete e confirme novamente.");
+                }
+                venda.definirEntrega(servico);
+            }
 
             List<ItemVenda> itens = new ArrayList<>();
             BigDecimal total = BigDecimal.ZERO;
@@ -124,7 +153,7 @@ public class LojaService {
             }
             if (total.signum() <= 0) throw new IllegalArgumentException("O pedido deve ter um total positivo.");
             venda.setItemVendaCollection(itens);
-            venda.setValorTotal(total);
+            venda.setValorTotal(total.add(venda.getFreteLoja()));
             em.persist(venda);
             Empresa empresa = em.createQuery("SELECT e FROM Empresa e ORDER BY e.id", Empresa.class)
                 .setMaxResults(1).getResultList().stream().findFirst().orElse(null);
@@ -214,8 +243,35 @@ public class LojaService {
     public void registrarRetirada(Integer id, Integer operadorId) {
         transacao(em -> {
             Venda pedido = bloquearPedido(em, id, operadorId);
-            if (!"EMITIDA".equals(pedido.getStatus())) throw new IllegalStateException("A NF-e precisa estar autorizada.");
+            if (!"EMITIDA".equals(pedido.getStatus()) || pedido.isEntregaLoja()) {
+                throw new IllegalStateException("O pedido precisa estar autorizado e ser para retirada.");
+            }
             if (pedido.getRetiradoEm() == null) pedido.setRetiradoEm(new Date());
+            return null;
+        });
+    }
+
+    public void registrarEnvio(Integer id, Integer operadorId, String rastreio) {
+        transacao(em -> {
+            Venda pedido = bloquearPedido(em, id, operadorId);
+            if (!"EMITIDA".equals(pedido.getStatus()) || !pedido.isEntregaLoja() || pedido.getEnviadoEm() != null) {
+                throw new IllegalStateException("O pedido precisa estar autorizado e aguardando envio.");
+            }
+            String codigo = rastreio == null ? "" : rastreio.trim();
+            if (codigo.length() > 60) throw new IllegalArgumentException("O código de rastreio deve ter até 60 caracteres.");
+            pedido.setCodigoRastreio(codigo.isEmpty() ? null : codigo);
+            pedido.setEnviadoEm(new Date());
+            return null;
+        });
+    }
+
+    public void registrarEntrega(Integer id, Integer operadorId) {
+        transacao(em -> {
+            Venda pedido = bloquearPedido(em, id, operadorId);
+            if (!"EMITIDA".equals(pedido.getStatus()) || !pedido.isEntregaLoja() || pedido.getEnviadoEm() == null) {
+                throw new IllegalStateException("O pedido precisa estar autorizado e enviado.");
+            }
+            if (pedido.getEntregueEm() == null) pedido.setEntregueEm(new Date());
             return null;
         });
     }

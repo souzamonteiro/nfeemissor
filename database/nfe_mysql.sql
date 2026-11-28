@@ -21,6 +21,8 @@ DROP TRIGGER IF EXISTS trigger_calcular_valor_produto;
 
 DROP TABLE IF EXISTS item_venda;
 DROP TABLE IF EXISTS venda;
+DROP TABLE IF EXISTS servico_entrega;
+DROP TABLE IF EXISTS transportadora;
 DROP TABLE IF EXISTS cliente;
 DROP TABLE IF EXISTS produto;
 DROP TABLE IF EXISTS empresa;
@@ -164,6 +166,29 @@ CREATE TABLE cliente (
     data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE transportadora (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    transportadora_nome VARCHAR(60),
+    transportadora_documento VARCHAR(14),
+    transportadora_ie VARCHAR(14),
+    transportadora_endereco VARCHAR(60),
+    transportadora_municipio VARCHAR(60),
+    transportadora_uf VARCHAR(2),
+    ativa TINYINT(1) NOT NULL DEFAULT 1
+);
+
+CREATE TABLE servico_entrega (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    transportadora_id INT NOT NULL,
+    nome VARCHAR(80) NOT NULL,
+    cep_inicio VARCHAR(8) NOT NULL,
+    cep_fim VARCHAR(8) NOT NULL,
+    valor DECIMAL(15,2) NOT NULL,
+    prazo_dias INT NOT NULL,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    CONSTRAINT fk_servico_transportadora FOREIGN KEY (transportadora_id) REFERENCES transportadora(id)
+);
+
 CREATE TABLE venda (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente_id INT NOT NULL,
@@ -177,6 +202,18 @@ CREATE TABLE venda (
     pedido_loja VARCHAR(36) UNIQUE,
     pix_confirmado_em DATETIME,
     retirado_em DATETIME,
+    transportadora_nome VARCHAR(60),
+    transportadora_documento VARCHAR(14),
+    transportadora_ie VARCHAR(14),
+    transportadora_endereco VARCHAR(60),
+    transportadora_municipio VARCHAR(60),
+    transportadora_uf VARCHAR(2),
+    servico_entrega VARCHAR(80),
+    frete_loja DECIMAL(15,2),
+    prazo_entrega INT,
+    codigo_rastreio VARCHAR(60),
+    enviado_em DATETIME,
+    entregue_em DATETIME,
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_venda_cliente FOREIGN KEY (cliente_id) REFERENCES cliente(id)

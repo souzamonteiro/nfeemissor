@@ -13,6 +13,8 @@
     <class>com.souzamonteiro.nfe.model.VwVendasCompletas</class>
     <class>com.souzamonteiro.nfe.model.Configuracao</class>
     <class>com.souzamonteiro.nfe.model.VwClientesAtivos</class>
+    <class>com.souzamonteiro.nfe.model.Transportadora</class>
+    <class>com.souzamonteiro.nfe.model.ServicoEntrega</class>
     <properties>
       <!-- Configuração do MySQL -->
       <property name="javax.persistence.jdbc.driver" value="com.mysql.cj.jdbc.Driver"/>

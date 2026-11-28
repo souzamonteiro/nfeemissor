@@ -12,6 +12,7 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Embedded;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -79,6 +80,42 @@ public class Venda implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     private Date retiradoEm;
 
+    @Embedded
+    private DadosTransportadora transporteLoja;
+    @Column(name = "servico_entrega", length = 80)
+    private String servicoEntrega;
+    @Column(name = "frete_loja", precision = 15, scale = 2)
+    private BigDecimal freteLoja;
+    @Column(name = "prazo_entrega")
+    private Integer prazoEntrega;
+    @Column(name = "codigo_rastreio", length = 60)
+    private String codigoRastreio;
+    @Column(name = "enviado_em")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date enviadoEm;
+    @Column(name = "entregue_em")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date entregueEm;
+
+    public DadosTransportadora getTransporteLoja() { return transporteLoja; }
+    public String getServicoEntrega() { return servicoEntrega; }
+    public BigDecimal getFreteLoja() { return freteLoja == null ? BigDecimal.ZERO : freteLoja; }
+    public Integer getPrazoEntrega() { return prazoEntrega; }
+    public String getCodigoRastreio() { return codigoRastreio; }
+    public void setCodigoRastreio(String codigoRastreio) { this.codigoRastreio = codigoRastreio; }
+    public Date getEnviadoEm() { return enviadoEm; }
+    public void setEnviadoEm(Date enviadoEm) { this.enviadoEm = enviadoEm; }
+    public Date getEntregueEm() { return entregueEm; }
+    public void setEntregueEm(Date entregueEm) { this.entregueEm = entregueEm; }
+    public boolean isEntregaLoja() { return servicoEntrega != null; }
+
+    public void definirEntrega(ServicoEntrega servico) {
+        transporteLoja = new DadosTransportadora(servico.getTransportadora().getDados());
+        servicoEntrega = servico.getNome();
+        freteLoja = servico.getValor();
+        prazoEntrega = servico.getPrazoDias();
+    }
+
     public String getPedidoLoja() { return pedidoLoja; }
     public void setPedidoLoja(String pedidoLoja) { this.pedidoLoja = pedidoLoja; }
     public Date getPixConfirmadoEm() { return pixConfirmadoEm; }
@@ -87,7 +124,11 @@ public class Venda implements Serializable {
     public void setRetiradoEm(Date retiradoEm) { this.retiradoEm = retiradoEm; }
     public String getSituacaoLoja() {
         if (retiradoEm != null) return "Retirado";
-        if ("EMITIDA".equals(status)) return "Disponível para retirada";
+        if ("EMITIDA".equals(status)) {
+            if (!isEntregaLoja()) return "Disponível para retirada";
+            if (entregueEm != null) return "Entregue";
+            return enviadoEm == null ? "Preparando envio" : "Enviado";
+        }
         if ("CANCELADA".equals(status)) return "Nota cancelada";
         if ("REVISAO_FISCAL".equals(status)) return "Pagamento confirmado · NF-e em revisão";
         return pixConfirmadoEm == null ? "Aguardando Pix" : "Pagamento confirmado · aguardando NF-e";

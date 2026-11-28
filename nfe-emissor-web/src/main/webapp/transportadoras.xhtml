@@ -1,0 +1,75 @@
+<ui:composition template="/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:p="http://primefaces.org/ui" xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:define name="content">
+        <h1>Transportadoras e serviços de entrega</h1>
+        <p:messages id="mensagens"/>
+        <h:form id="transportadoras">
+            <p:panel header="Transportadora">
+                <h:panelGrid columns="2" cellpadding="6">
+                    <p:outputLabel for="nome" value="Nome ou razão social"/>
+                    <p:inputText id="nome" value="#{entregaController.transportadora.dados.nome}" required="true" maxlength="60"/>
+                    <p:outputLabel for="documento" value="CPF ou CNPJ"/>
+                    <p:inputText id="documento" value="#{entregaController.transportadora.dados.documento}" required="true" maxlength="18"/>
+                    <p:outputLabel for="ie" value="Inscrição estadual"/>
+                    <p:inputText id="ie" value="#{entregaController.transportadora.dados.inscricaoEstadual}" maxlength="14"/>
+                    <p:outputLabel for="endereco" value="Endereço fiscal"/>
+                    <p:inputText id="endereco" value="#{entregaController.transportadora.dados.endereco}" required="true" maxlength="60"/>
+                    <p:outputLabel for="municipio" value="Município"/>
+                    <p:inputText id="municipio" value="#{entregaController.transportadora.dados.municipio}" required="true" maxlength="60"/>
+                    <p:outputLabel for="uf" value="UF"/>
+                    <p:inputText id="uf" value="#{entregaController.transportadora.dados.uf}" required="true" maxlength="2"/>
+                    <p:outputLabel for="ativa" value="Ativa"/>
+                    <p:selectBooleanCheckbox id="ativa" value="#{entregaController.transportadora.ativa}"/>
+                </h:panelGrid>
+                <p:commandButton value="Salvar transportadora" action="#{entregaController.salvarTransportadora}"
+                    process="@form" update="@form :servicos :mensagens"/>
+                <p:commandButton value="Novo cadastro" action="#{entregaController.novaTransportadora}"
+                    process="@this" update="@form" resetValues="true"/>
+            </p:panel>
+            <p:dataTable value="#{entregaController.transportadoras}" var="t" emptyMessage="Nenhuma transportadora cadastrada.">
+                <p:column headerText="Transportadora"><h:outputText value="#{t.dados.nome}"/></p:column>
+                <p:column headerText="CPF ou CNPJ"><h:outputText value="#{t.dados.documento}"/></p:column>
+                <p:column headerText="Situação"><h:outputText value="#{t.ativa ? 'Ativa' : 'Inativa'}"/></p:column>
+                <p:column>
+                    <p:commandButton value="Editar" action="#{entregaController.editarTransportadora(t.id)}"
+                        process="@this" update="@form" resetValues="true"/>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+        <h:form id="servicos">
+            <p:panel header="Serviço e faixa de CEP">
+                <h:panelGrid columns="2" cellpadding="6">
+                    <p:outputLabel for="transportadora" value="Transportadora"/>
+                    <p:selectOneMenu id="transportadora" value="#{entregaController.transportadoraId}" required="true">
+                        <f:selectItem itemLabel="Selecione" noSelectionOption="true"/>
+                        <f:selectItems value="#{entregaController.transportadoras}" var="t" itemValue="#{t.id}" itemLabel="#{t.dados.nome}"/>
+                    </p:selectOneMenu>
+                    <p:outputLabel for="nome" value="Nome do serviço"/>
+                    <p:inputText id="nome" value="#{entregaController.servico.nome}" required="true" maxlength="80"/>
+                    <p:outputLabel for="inicio" value="CEP inicial"/>
+                    <p:inputText id="inicio" value="#{entregaController.servico.cepInicio}" required="true" maxlength="9"/>
+                    <p:outputLabel for="fim" value="CEP final"/>
+                    <p:inputText id="fim" value="#{entregaController.servico.cepFim}" required="true" maxlength="9"/>
+                    <p:outputLabel for="valor" value="Frete (R$)"/>
+                    <p:inputNumber id="valor" value="#{entregaController.servico.valor}" required="true" decimalPlaces="2" minValue="0"/>
+                    <p:outputLabel for="prazo" value="Prazo em dias úteis"/>
+                    <p:inputText id="prazo" value="#{entregaController.servico.prazoDias}" required="true" maxlength="4"/>
+                    <p:outputLabel for="ativo" value="Ativo"/>
+                    <p:selectBooleanCheckbox id="ativo" value="#{entregaController.servico.ativo}"/>
+                </h:panelGrid>
+                <p:commandButton value="Salvar serviço" action="#{entregaController.salvarServico}" process="@form" update="@form :mensagens"/>
+                <p:commandButton value="Novo serviço" action="#{entregaController.novoServico}" process="@this" update="@form" resetValues="true"/>
+            </p:panel>
+            <p:dataTable value="#{entregaController.servicos}" var="s" emptyMessage="Nenhum serviço cadastrado.">
+                <p:column headerText="Serviço"><h:outputText value="#{s.descricao}"/></p:column>
+                <p:column headerText="Faixa de CEP"><h:outputText value="#{s.cepInicio} a #{s.cepFim}"/></p:column>
+                <p:column headerText="Situação"><h:outputText value="#{s.ativo and s.transportadora.ativa ? 'Ativo' : 'Inativo'}"/></p:column>
+                <p:column>
+                    <p:commandButton value="Editar" action="#{entregaController.editarServico(s.id)}"
+                        process="@this" update="@form" resetValues="true"/>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </ui:define>
+</ui:composition>

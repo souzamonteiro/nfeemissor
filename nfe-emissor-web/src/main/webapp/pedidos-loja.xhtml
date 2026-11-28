@@ -20,6 +20,15 @@
                     <h:outputText value="#{pedido.situacaoLoja}"/>
                     <h:outputText value=" — NF-e #{pedido.numeroNfe}" rendered="#{not empty pedido.numeroNfe}"/>
                 </p:column>
+                <p:column headerText="Recebimento">
+                    <h:outputText value="Retirada na loja" rendered="#{not pedido.entregaLoja}"/>
+                    <h:panelGroup rendered="#{pedido.entregaLoja}">
+                        <h:outputText value="#{pedido.transporteLoja.nome} · #{pedido.servicoEntrega}"/><br/>
+                        <h:outputText value="#{pedido.clienteId.xlgr}, #{pedido.clienteId.nro} #{pedido.clienteId.xcpl}"/><br/>
+                        <h:outputText value="#{pedido.clienteId.xbairro} · #{pedido.clienteId.xmun}/#{pedido.clienteId.uf} · #{pedido.clienteId.cep}"/><br/>
+                        <h:outputText value="Rastreio #{pedido.codigoRastreio}" rendered="#{not empty pedido.codigoRastreio}"/>
+                    </h:panelGroup>
+                </p:column>
                 <p:column headerText="Ações">
                     <p:commandButton value="Confirmar Pix" action="#{lojaController.confirmar(pedido.id)}" update="@form"
                         rendered="#{pedido.status eq 'AGUARDANDO_PIX'}"
@@ -27,7 +36,14 @@
                     <p:commandButton value="Emitir NF-e" action="#{lojaController.emitir(pedido.id)}" update="@form"
                         rendered="#{pedido.status eq 'PIX_CONFIRMADO'}"/>
                     <p:commandButton value="Registrar retirada" action="#{lojaController.retirar(pedido.id)}" update="@form"
-                        rendered="#{pedido.status eq 'EMITIDA' and empty pedido.retiradoEm}"/>
+                        rendered="#{pedido.status eq 'EMITIDA' and not pedido.entregaLoja and empty pedido.retiradoEm}"/>
+                    <h:panelGroup rendered="#{pedido.status eq 'EMITIDA' and pedido.entregaLoja and empty pedido.enviadoEm}">
+                        <p:inputText id="rastreio" value="#{lojaController.rastreios[pedido.id]}" maxlength="60" placeholder="Código de rastreio"/>
+                        <p:commandButton value="Registrar envio" action="#{lojaController.enviar(pedido.id)}"
+                            process="@this rastreio" update="@form"/>
+                    </h:panelGroup>
+                    <p:commandButton value="Registrar entrega" action="#{lojaController.entregar(pedido.id)}" update="@form"
+                        rendered="#{pedido.status eq 'EMITIDA' and pedido.entregaLoja and not empty pedido.enviadoEm and empty pedido.entregueEm}"/>
                 </p:column>
             </p:dataTable>
         </h:form>

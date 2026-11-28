@@ -848,6 +848,10 @@ public class VendaController implements Serializable {
         // 5. DETALHES (produtos)
         JSONArray detArray = new JSONArray();
         
+        BigDecimal freteLoja = venda.getFreteLoja();
+        BigDecimal subtotal = venda.getValorTotal().subtract(freteLoja);
+        BigDecimal produtosAcumulados = BigDecimal.ZERO;
+        BigDecimal freteAcumulado = BigDecimal.ZERO;
         for (ItemVenda item : venda.getItemVendaCollection()) {
             Produto produto = item.getProdutoId();
 
@@ -887,6 +891,13 @@ public class VendaController implements Serializable {
             prod.put("qCom", String.format(Locale.US, "%.4f", item.getQuantidade()));
             prod.put("vUnCom", String.format(Locale.US, "%.4f", item.getValorUnitario()));
             prod.put("vProd", String.format(Locale.US, "%.2f", item.getValorTotal()));
+            if (freteLoja.signum() > 0) {
+                produtosAcumulados = produtosAcumulados.add(item.getValorTotal());
+                BigDecimal freteAteItem = freteLoja.multiply(produtosAcumulados)
+                    .divide(subtotal, 2, java.math.RoundingMode.HALF_UP);
+                prod.put("vFrete", formatar2(freteAteItem.subtract(freteAcumulado)));
+                freteAcumulado = freteAteItem;
+            }
 
             // Código EAN tributário
             prod.put("cEANTrib", prod.getString("cEAN"));
@@ -994,7 +1005,7 @@ public class VendaController implements Serializable {
         JSONObject icmsTot = new JSONObject();
 
         // Calcular totais
-        BigDecimal totalVenda = venda.getValorTotal();
+        BigDecimal totalVenda = subtotal;
         BigDecimal totalICMS = BigDecimal.ZERO;
         BigDecimal totalICMSDeson = BigDecimal.ZERO;
         BigDecimal totalBCST = BigDecimal.ZERO;
@@ -1053,7 +1064,7 @@ public class VendaController implements Serializable {
         icmsTot.put("vFCPST", "0.00");
         icmsTot.put("vFCPSTRet", "0.00");
         icmsTot.put("vProd", String.format(Locale.US, "%.2f", totalVenda));
-        icmsTot.put("vFrete", "0.00");
+        icmsTot.put("vFrete", formatar2(freteLoja));
         icmsTot.put("vSeg", "0.00");
         icmsTot.put("vDesc", "0.00");
         icmsTot.put("vII", "0.00");
@@ -1062,7 +1073,7 @@ public class VendaController implements Serializable {
         icmsTot.put("vPIS", String.format(Locale.US, "%.2f", totalPIS));
         icmsTot.put("vCOFINS", String.format(Locale.US, "%.2f", totalCOFINS));
         icmsTot.put("vOutro", "0.00");
-        icmsTot.put("vNF", String.format(Locale.US, "%.2f", totalVenda));
+        icmsTot.put("vNF", formatar2(venda.getValorTotal()));
 
         total.put("ICMSTot", icmsTot);
 
@@ -1091,7 +1102,8 @@ public class VendaController implements Serializable {
 
         // 7. TRANSPORTE
         JSONObject transp = new JSONObject();
-        transp.put("modFrete", "9"); // 9=Sem frete
+        transp.put("modFrete", venda.isEntregaLoja() ? "0" : "9");
+        if (venda.isEntregaLoja()) transp.put("transporta", venda.getTransporteLoja().paraNfe());
         infNFe.put("transp", transp);
 
         // 8. PAGAMENTO

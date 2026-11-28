@@ -62,6 +62,7 @@ import com.sun.net.httpserver.HttpServer;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import br.com.swconsultoria.nfe.schemas.TUf;
 
 /**
  * Emissor de NF-e para Simples Nacional
@@ -754,6 +755,7 @@ public class NFeEmissor {
                     prod.setQCom(jsonProd.getString("qCom"));
                     prod.setVUnCom(jsonProd.getString("vUnCom"));
                     prod.setVProd(jsonProd.getString("vProd"));
+                    if (jsonProd.has("vFrete")) prod.setVFrete(jsonProd.getString("vFrete"));
                     if (jsonProd.has("cEANTrib")) {
                         prod.setCEANTrib(jsonProd.getString("cEANTrib"));
                     }
@@ -1081,6 +1083,20 @@ public class NFeEmissor {
                 // PREENCHE TRANSPORTE
                 Transp transp = new Transp();
                 transp.setModFrete(jsonTransp.getString("modFrete"));
+                JSONObject jsonTransportadora = jsonTransp.optJSONObject("transporta");
+                if (jsonTransportadora != null && !"9".equals(transp.getModFrete())) {
+                    Transp.Transporta transportadora = new Transp.Transporta();
+                    transportadora.setCNPJ(jsonTransportadora.optString("CNPJ", null));
+                    transportadora.setCPF(jsonTransportadora.optString("CPF", null));
+                    transportadora.setXNome(jsonTransportadora.optString("xNome", null));
+                    transportadora.setIE(jsonTransportadora.optString("IE", null));
+                    transportadora.setXEnder(jsonTransportadora.optString("xEnder", null));
+                    transportadora.setXMun(jsonTransportadora.optString("xMun", null));
+                    if (jsonTransportadora.has("UF")) {
+                        transportadora.setUF(TUf.fromValue(jsonTransportadora.getString("UF")));
+                    }
+                    transp.setTransporta(transportadora);
+                }
                 infNFe.setTransp(transp);
 
                 // PREENCHE PAGAMENTO

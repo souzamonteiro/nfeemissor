@@ -23,8 +23,19 @@
                     </div>
                 </div>
             </ui:repeat>
-            <p>Retirada na loja</p>
-            <p class="preco">Total <h:outputText value="#{lojaController.total}"><f:convertNumber type="currency" currencyCode="BRL" locale="pt_BR"/></h:outputText></p>
+            <h:panelGroup layout="block" rendered="#{not empty lojaController.opcoesEntrega}">
+                <h:outputLabel for="servicoEntrega" value="Como deseja receber?"/>
+                <h:selectOneMenu id="servicoEntrega" value="#{lojaController.servicoEntregaId}">
+                    <f:selectItem itemValue="#{0}" itemLabel="Retirada na loja · Grátis"/>
+                    <f:selectItems value="#{lojaController.opcoesEntrega}" var="opcao" itemValue="#{opcao.id}" itemLabel="#{opcao.descricao}"/>
+                    <f:ajax render="totalPedido"/>
+                </h:selectOneMenu>
+            </h:panelGroup>
+            <h:panelGroup layout="block" rendered="#{empty lojaController.opcoesEntrega}">
+                <p>Retirada na loja · Grátis</p>
+                <p><h:outputText value="Entre para consultar as opções de entrega para o seu CEP." rendered="#{not lojaController.cliente}"/></p>
+            </h:panelGroup>
+            <h:panelGroup id="totalPedido" layout="block"><p class="preco">Total <h:outputText value="#{lojaController.total}"><f:convertNumber type="currency" currencyCode="BRL" locale="pt_BR"/></h:outputText></p></h:panelGroup>
             <h:commandButton value="#{lojaController.cliente ? 'Criar pedido e pagar com Pix' : 'Entrar para continuar'}" action="#{lojaController.finalizar}" styleClass="botao"/>
         </h:form>
     </ui:define>

@@ -14,6 +14,11 @@
                     <div><h2>Pedido #{pedido.id}</h2><p>#{pedido.situacaoLoja}</p></div>
                     <strong><h:outputText value="#{pedido.valorTotal}"><f:convertNumber type="currency" currencyCode="BRL" locale="pt_BR"/></h:outputText></strong>
                 </div>
+                <h:panelGroup layout="block" rendered="#{pedido.entregaLoja}">
+                    <p><h:outputText value="#{pedido.transporteLoja.nome} · #{pedido.servicoEntrega} · #{pedido.prazoEntrega} dia(s) úteis"/></p>
+                    <p>Frete <h:outputText value="#{pedido.freteLoja}"><f:convertNumber type="currency" currencyCode="BRL" locale="pt_BR"/></h:outputText></p>
+                    <p><h:outputText value="Rastreio #{pedido.codigoRastreio}" rendered="#{not empty pedido.codigoRastreio}"/></p>
+                </h:panelGroup>
                 <ul>
                     <ui:repeat value="#{pedido.itemVendaCollection}" var="item">
                         <li><h:outputText value="#{item.quantidade.intValue()} × #{item.produtoId.xprod}"/></li>
