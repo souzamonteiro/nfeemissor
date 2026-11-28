@@ -1,0 +1,45 @@
+<ui:composition template="/WEB-INF/loja.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:define name="titulo">Minhas compras | Loja virtual</ui:define>
+    <ui:define name="conteudo">
+        <h1>Minhas compras</h1>
+        <h:panelGroup layout="block" styleClass="painel" rendered="#{empty lojaController.meusPedidos}">
+            <p>Você ainda não fez pedidos.</p>
+            <h:link outcome="/loja/index.xhtml" value="Ver produtos" styleClass="botao"/>
+        </h:panelGroup>
+        <ui:repeat value="#{lojaController.meusPedidos}" var="pedido">
+            <article class="painel pedido">
+                <div class="linha">
+                    <div><h2>Pedido #{pedido.id}</h2><p>#{pedido.situacaoLoja}</p></div>
+                    <strong><h:outputText value="#{pedido.valorTotal}"><f:convertNumber type="currency" currencyCode="BRL" locale="pt_BR"/></h:outputText></strong>
+                </div>
+                <ul>
+                    <ui:repeat value="#{pedido.itemVendaCollection}" var="item">
+                        <li><h:outputText value="#{item.quantidade.intValue()} × #{item.produtoId.xprod}"/></li>
+                    </ui:repeat>
+                </ul>
+                <h:panelGroup layout="block" styleClass="pix" rendered="#{empty pedido.pixConfirmadoEm}">
+                    <h2>Pague com Pix</h2>
+                    <h:graphicImage value="#{lojaController.qrCode(pedido)}" alt="QR Code Pix do pedido #{pedido.id}" width="220" height="220"/>
+                    <label>Pix Copia e Cola
+                        <textarea readonly="readonly" rows="3" onclick="this.select()"><h:outputText value="#{pedido.chavePix}"/></textarea>
+                    </label>
+                    <p>A equipe confirma seu pagamento após conferir o recebimento.</p>
+                </h:panelGroup>
+                <h:panelGroup layout="block" styleClass="acoes" rendered="#{not empty pedido.chaveNfe and not empty pedido.protocoloNfe}">
+                    <h:outputLink value="#{request.contextPath}/pdf/view" styleClass="botao"
+                                  target="_blank" rel="noopener">
+                        <f:param name="chave" value="#{pedido.chaveNfe}"/>Gerar PDF (DANFE)
+                    </h:outputLink>
+                    <h:outputLink value="#{request.contextPath}/pdf/download" styleClass="botao secundario">
+                        <f:param name="chave" value="#{pedido.chaveNfe}"/>Baixar DANFE
+                    </h:outputLink>
+                    <h:outputLink value="#{request.contextPath}/pdf/xml" styleClass="botao secundario">
+                        <f:param name="chave" value="#{pedido.chaveNfe}"/>Baixar XML
+                    </h:outputLink>
+                </h:panelGroup>
+            </article>
+        </ui:repeat>
+    </ui:define>
+</ui:composition>

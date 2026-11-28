@@ -14,6 +14,18 @@ public class VendaDAO extends GenericDAO<Venda> implements Serializable {
         super(Venda.class);
     }
     
+    @Override
+    public List<Venda> findAll() {
+        EntityManager em = getEntityManager();
+        try {
+            return em.createQuery(
+                "SELECT v FROM Venda v WHERE v.pedidoLoja IS NULL OR v.pixConfirmadoEm IS NOT NULL", Venda.class
+            ).getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
     public List<Venda> findPendentes() {
         EntityManager em = getEntityManager();
         try {

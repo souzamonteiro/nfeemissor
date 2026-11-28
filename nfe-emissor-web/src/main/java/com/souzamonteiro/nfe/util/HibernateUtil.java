@@ -10,13 +10,17 @@ public class HibernateUtil {
     private static EntityManagerFactory emf;
     
     public static EntityManager getEntityManager() {
-        if (emf == null) {
+        return getEntityManagerFactory().createEntityManager();
+    }
+
+    private static synchronized EntityManagerFactory getEntityManagerFactory() {
+        if (emf == null || !emf.isOpen()) {
             emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT);
         }
-        return emf.createEntityManager();
+        return emf;
     }
     
-    public static void closeEntityManagerFactory() {
+    public static synchronized void closeEntityManagerFactory() {
         if (emf != null && emf.isOpen()) {
             emf.close();
         }

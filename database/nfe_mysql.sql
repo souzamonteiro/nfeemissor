@@ -38,6 +38,7 @@ CREATE TABLE usuario (
     email VARCHAR(100) UNIQUE NOT NULL,
     senha VARCHAR(255) NOT NULL,
     perfil VARCHAR(20) NOT NULL DEFAULT 'USER',
+    loja_cliente_id INT UNIQUE,
     ativo TINYINT(1) DEFAULT 1,
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -132,6 +133,10 @@ CREATE TABLE produto (
     pibs_uf DECIMAL(5,2) DEFAULT 0.10,
     pibs_mun DECIMAL(5,2) DEFAULT 0.00,
     pcbs DECIMAL(5,2) DEFAULT 0.90,
+    publicado_loja TINYINT(1) DEFAULT 0,
+    preco_loja DECIMAL(15,2),
+    categoria_loja VARCHAR(80),
+    foto_loja VARCHAR(512),
     ativo TINYINT(1) DEFAULT 1,
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -169,6 +174,9 @@ CREATE TABLE venda (
     status VARCHAR(20) DEFAULT 'PENDENTE',
     valor_total DECIMAL(15,2) DEFAULT 0.00,
     chave_pix VARCHAR(512),
+    pedido_loja VARCHAR(36) UNIQUE,
+    pix_confirmado_em DATETIME,
+    retirado_em DATETIME,
     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_venda_cliente FOREIGN KEY (cliente_id) REFERENCES cliente(id)

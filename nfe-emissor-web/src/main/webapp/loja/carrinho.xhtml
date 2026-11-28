@@ -1,0 +1,31 @@
+<ui:composition template="/WEB-INF/loja.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:define name="titulo">Carrinho | Loja virtual</ui:define>
+    <ui:define name="conteudo">
+        <h1>#{lojaController.compraDireta ? 'Compra direta' : 'Carrinho'}</h1>
+        <h:panelGroup layout="block" styleClass="painel" rendered="#{empty lojaController.linhas}">
+            <p>Seu carrinho está vazio.</p>
+            <h:link outcome="/loja/index.xhtml" value="Ver produtos" styleClass="botao"/>
+        </h:panelGroup>
+        <h:form rendered="#{not empty lojaController.linhas}" styleClass="painel">
+            <ui:repeat value="#{lojaController.linhas}" var="linha">
+                <div class="linha">
+                    <div>
+                        <strong><h:outputText value="#{empty linha.produto ? 'Produto indisponível' : linha.produto.xprod}"/></strong>
+                        <p><h:outputText value="#{linha.total}"><f:convertNumber type="currency" currencyCode="BRL" locale="pt_BR"/></h:outputText></p>
+                    </div>
+                    <div class="acoes">
+                        <h:commandButton value="−" title="Diminuir quantidade" action="#{lojaController.alterar(linha.id, -1)}" rendered="#{not lojaController.compraDireta}"/>
+                        <span>#{linha.quantidade}</span>
+                        <h:commandButton value="+" title="Aumentar quantidade" action="#{lojaController.alterar(linha.id, 1)}" rendered="#{not lojaController.compraDireta and not empty linha.produto}"/>
+                        <h:commandButton value="Remover" action="#{lojaController.remover(linha.id)}" rendered="#{not lojaController.compraDireta}"/>
+                    </div>
+                </div>
+            </ui:repeat>
+            <p>Retirada na loja</p>
+            <p class="preco">Total <h:outputText value="#{lojaController.total}"><f:convertNumber type="currency" currencyCode="BRL" locale="pt_BR"/></h:outputText></p>
+            <h:commandButton value="#{lojaController.cliente ? 'Criar pedido e pagar com Pix' : 'Entrar para continuar'}" action="#{lojaController.finalizar}" styleClass="botao"/>
+        </h:form>
+    </ui:define>
+</ui:composition>

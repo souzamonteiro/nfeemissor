@@ -17,7 +17,7 @@ public class ConfiguracaoDAO extends GenericDAO<Configuracao> implements Seriali
         EntityManager em = getEntityManager();
         try {
             TypedQuery<Configuracao> query = em.createQuery(
-                "SELECT c FROM Configuracao c", 
+                "SELECT c FROM Configuracao c ORDER BY c.id",
                 Configuracao.class
             );
             return query.getResultList().stream().findFirst().orElse(null);

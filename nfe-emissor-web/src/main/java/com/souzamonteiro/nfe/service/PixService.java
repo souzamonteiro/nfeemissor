@@ -14,6 +14,17 @@ public class PixService {
             return null;
         }
         
+        // Formatar descrição com número da NF-e
+        String descricao = "NF-e " + venda.getNumeroNfe();
+        if (venda.getChaveNfe() != null) {
+            descricao += " - " + venda.getChaveNfe().substring(25, 34); // Últimos dígitos da chave
+        }
+
+        return gerarPix(venda, empresa, descricao);
+    }
+
+    public static String gerarPix(Venda venda, Empresa empresa, String descricao) {
+        if (venda == null || empresa == null) return null;
         try {
             // Usar o telefone da empresa como chave PIX (ou CNPJ se não houver telefone)
             String chavePix = empresa.getFone();
@@ -27,12 +38,6 @@ public class PixService {
             if (chavePix == null || chavePix.replaceAll("\\D", "").length() < 11) {
                 // Usar CPF/CNPJ formatado se o telefone não for adequado
                 chavePix = empresa.getCnpj().replaceAll("\\D", "");
-            }
-            
-            // Formatar descrição com número da NF-e
-            String descricao = "NF-e " + venda.getNumeroNfe();
-            if (venda.getChaveNfe() != null) {
-                descricao += " - " + venda.getChaveNfe().substring(25, 34); // Últimos dígitos da chave
             }
             
             // Gerar payload PIX usando a classe existente

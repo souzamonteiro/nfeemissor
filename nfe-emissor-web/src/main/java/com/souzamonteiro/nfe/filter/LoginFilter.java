@@ -1,69 +1,53 @@
 package com.souzamonteiro.nfe.filter;
 
+import com.souzamonteiro.nfe.model.Usuario;
+import com.souzamonteiro.nfe.service.LojaService;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-@WebFilter(filterName = "LoginFilter", urlPatterns = {"/*"})
 public class LoginFilter implements Filter {
-    
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        System.out.println("=== LoginFilter inicializado ===");
-    }
-    
+    private static final List<String> PAGINAS_PUBLICAS = Arrays.asList(
+        "/login.xhtml", "/error.xhtml", "/loja/index.xhtml", "/loja/cadastro.xhtml", "/loja/entrar.xhtml"
+    );
+
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-        HttpSession session = httpRequest.getSession(false);
-        
-        String loginURL = httpRequest.getContextPath() + "/login.xhtml";
-        String requestURI = httpRequest.getRequestURI();
-        
-        System.out.println("=== LoginFilter: URI=" + requestURI);
-        
-        // Recursos que NÃO precisam de login
-        boolean isLoginRequest = requestURI.contains("login.xhtml");
-        boolean isResourceRequest = requestURI.contains("/javax.faces.resource/");
-        boolean isErrorPage = requestURI.contains("error.xhtml");
-        boolean isPdfRequest = requestURI.contains("/pdf/");
-        
-        // Verificar se usuário está logado (na sessão)
-        boolean loggedIn = false;
-        if (session != null) {
-            // Verifica tanto no atributo da sessão quanto no mapa da sessão
-            if (session.getAttribute("usuarioLogado") != null) {
-                loggedIn = true;
-                System.out.println("=== LoginFilter: Usuário logado na sessão ===");
-            }
-        }
-        
-        System.out.println("=== LoginFilter: loggedIn=" + loggedIn + 
-                          ", isLoginRequest=" + isLoginRequest + 
-                          ", isResourceRequest=" + isResourceRequest);
-        
-        if (loggedIn || isLoginRequest || isResourceRequest || isErrorPage || isPdfRequest) {
-            System.out.println("=== LoginFilter: Permitindo acesso ===");
+        HttpServletRequest http = (HttpServletRequest) request;
+        HttpServletResponse resultado = (HttpServletResponse) response;
+        String caminho = http.getServletPath();
+        if ("/faces".equals(caminho)) caminho = http.getPathInfo() == null ? "" : http.getPathInfo();
+        if (PAGINAS_PUBLICAS.contains(caminho) || caminho.startsWith("/javax.faces.resource/")) {
             chain.doFilter(request, response);
-        } else {
-            System.out.println("=== LoginFilter: Redirecionando para login ===");
-            httpResponse.sendRedirect(loginURL);
+            return;
         }
-    }
-    
-    @Override
-    public void destroy() {
-        System.out.println("=== LoginFilter destruído ===");
+        HttpSession sessao = http.getSession(false);
+        Usuario usuario = sessao == null ? null : (Usuario) sessao.getAttribute("usuarioLogado");
+        boolean loja = caminho.startsWith("/loja/");
+        if (loja && "/loja/carrinho.xhtml".equals(caminho)) {
+            chain.doFilter(request, response);
+        } else if (usuario == null) {
+            if ("/pdf".equals(caminho)) {
+                resultado.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            } else {
+                resultado.sendRedirect(http.getContextPath() + (loja ? "/loja/entrar.xhtml" : "/login.xhtml"));
+            }
+        } else if ((loja && LojaService.cliente(usuario)) || (!loja && LojaService.equipe(usuario))
+                || ("/pdf".equals(caminho) && LojaService.cliente(usuario))) {
+            chain.doFilter(request, response);
+        } else if (LojaService.cliente(usuario) && ("".equals(caminho) || "/index.xhtml".equals(caminho))) {
+            resultado.sendRedirect(http.getContextPath() + "/loja/pedidos.xhtml");
+        } else {
+            resultado.sendError(HttpServletResponse.SC_FORBIDDEN);
+        }
     }
 }

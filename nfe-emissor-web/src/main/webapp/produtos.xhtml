@@ -132,6 +132,14 @@
                                     </div>
 
                                     <div class="p-col-12 p-md-4">
+                                        <p:outputLabel for="publicadoLoja" value="Publicar na loja"/>
+                                        <p:selectBooleanCheckbox id="publicadoLoja" value="#{produtoController.produto.publicadoLoja}"/>
+                                        <p:outputLabel for="precoLoja" value="Preço da loja (opcional)"/>
+                                        <p:inputNumber id="precoLoja" value="#{produtoController.produto.precoLoja}" decimalPlaces="2" minValue="0" emptyValue="empty"/>
+                                        <p:outputLabel for="categoriaLoja" value="Categoria da loja"/>
+                                        <p:inputText id="categoriaLoja" value="#{produtoController.produto.categoriaLoja}" maxlength="80"/>
+                                        <p:outputLabel for="fotoLoja" value="Foto da loja (URL HTTPS ou caminho local)"/>
+                                        <p:inputText id="fotoLoja" value="#{produtoController.produto.fotoLoja}" maxlength="512"/>
                                         <p:outputLabel for="vuncom" value="Valor Unitário"/>
                                         <p:inputNumber id="vuncom" value="#{produtoController.produto.vuncom}" 
                                                      required="true" requiredMessage="Valor é obrigatório"

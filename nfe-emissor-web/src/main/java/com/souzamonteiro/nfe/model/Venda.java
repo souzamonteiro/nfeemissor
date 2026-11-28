@@ -70,6 +70,28 @@ public class Venda implements Serializable {
     private BigDecimal valorTotal;
     @Column(name = "chave_pix")
     private String chavePix;
+    @Column(name = "pedido_loja", unique = true, length = 36)
+    private String pedidoLoja;
+    @Column(name = "pix_confirmado_em")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date pixConfirmadoEm;
+    @Column(name = "retirado_em")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date retiradoEm;
+
+    public String getPedidoLoja() { return pedidoLoja; }
+    public void setPedidoLoja(String pedidoLoja) { this.pedidoLoja = pedidoLoja; }
+    public Date getPixConfirmadoEm() { return pixConfirmadoEm; }
+    public void setPixConfirmadoEm(Date pixConfirmadoEm) { this.pixConfirmadoEm = pixConfirmadoEm; }
+    public Date getRetiradoEm() { return retiradoEm; }
+    public void setRetiradoEm(Date retiradoEm) { this.retiradoEm = retiradoEm; }
+    public String getSituacaoLoja() {
+        if (retiradoEm != null) return "Retirado";
+        if ("EMITIDA".equals(status)) return "Disponível para retirada";
+        if ("CANCELADA".equals(status)) return "Nota cancelada";
+        if ("REVISAO_FISCAL".equals(status)) return "Pagamento confirmado · NF-e em revisão";
+        return pixConfirmadoEm == null ? "Aguardando Pix" : "Pagamento confirmado · aguardando NF-e";
+    }
     @Column(name = "data_criacao")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dataCriacao;

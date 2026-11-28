@@ -2,6 +2,8 @@ package com.souzamonteiro.nfe.servlet;
 
 import com.souzamonteiro.nfe.dao.ConfiguracaoDAO;
 import com.souzamonteiro.nfe.model.Configuracao;
+import com.souzamonteiro.nfe.model.Usuario;
+import com.souzamonteiro.nfe.service.LojaService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,6 +20,11 @@ import org.json.JSONObject;
 @WebServlet("/pdf/*")
 public class PDFServlet extends HttpServlet {
     
+    private static File arquivoFiscal(File diretorio, String chave, String extensao) {
+        File arquivo = new File(diretorio, chave + extensao);
+        return arquivo.isFile() ? arquivo : new File(diretorio, "NFe" + chave + extensao);
+    }
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         
@@ -29,7 +36,7 @@ public class PDFServlet extends HttpServlet {
         if (pathInfo != null) {
             if (pathInfo.startsWith("/view")) {
                 action = "view";
-            } else if (pathInfo.startsWith("/download")) {
+            } else if (pathInfo.startsWith("/download") || "/xml".equals(pathInfo)) {
                 action = "download";
             } else {
                 // Tentar extrair chave da URL
@@ -41,11 +48,22 @@ public class PDFServlet extends HttpServlet {
             }
         }
         
-        if (chave == null || chave.isEmpty()) {
+        if (chave != null) chave = chave.replaceFirst("^NFe", "");
+        if (chave == null || !chave.matches("[0-9]{44}")) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Chave da NF-e não informada");
             return;
         }
         
+        Usuario usuario = request.getSession(false) == null ? null
+            : (Usuario) request.getSession(false).getAttribute("usuarioLogado");
+        boolean xmlDownload = "/xml".equals(pathInfo);
+        if (!LojaService.equipe(usuario) && (!LojaService.cliente(usuario)
+                || !new LojaService().possuiDocumento(usuario.getLojaClienteId(), chave))) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        response.setHeader("Cache-Control", "no-store");
+
         try {
             ConfiguracaoDAO configDAO = new ConfiguracaoDAO();
             Configuracao config = configDAO.getConfiguracao();
@@ -64,15 +82,28 @@ public class PDFServlet extends HttpServlet {
                 System.getProperty("user.home") + "/xml"
             };
 
-            String diretorioPdf = null;
+            if (xmlDownload) {
+                for (String caminho : caminhos) {
+                    if (caminho == null || caminho.trim().isEmpty()) continue;
+                    File xml = arquivoFiscal(new File(caminho), chave, ".xml");
+                    if (xml.isFile()) {
+                        response.setContentType("application/xml");
+                        response.setHeader("Content-Disposition", "attachment; filename=\"" + chave + ".xml\"");
+                        Files.copy(xml.toPath(), response.getOutputStream());
+                        return;
+                    }
+                }
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
             File pdfFile = null;
             for (String caminho : caminhos) {
                 if (caminho == null || caminho.trim().isEmpty()) continue;
                 File dir = new File(caminho);
-                File candidatoPdf = new File(dir, chave + ".pdf");
+                File candidatoPdf = arquivoFiscal(dir, chave, ".pdf");
                 if (candidatoPdf.exists()) {
                     pdfFile = candidatoPdf;
-                    diretorioPdf = dir.getAbsolutePath();
                     break;
                 }
             }
@@ -83,7 +114,7 @@ public class PDFServlet extends HttpServlet {
                 for (String caminho : caminhos) {
                     if (caminho == null || caminho.trim().isEmpty()) continue;
                     File dir = new File(caminho);
-                    File candidatoXml = new File(dir, chave + ".xml");
+                    File candidatoXml = arquivoFiscal(dir, chave, ".xml");
                     if (candidatoXml.exists()) {
                         xmlFile = candidatoXml;
                         diretorioXml = dir.getAbsolutePath();

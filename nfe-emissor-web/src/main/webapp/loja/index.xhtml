@@ -1,0 +1,43 @@
+<ui:composition template="/WEB-INF/loja.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:define name="conteudo">
+        <section class="intro">
+            <h1>Produtos</h1>
+            <p>Compre com Pix e retire seu pedido na loja.</p>
+        </section>
+        <h:form styleClass="busca">
+            <h:panelGroup layout="block">
+                <h:outputLabel for="busca" value="Buscar produto"/>
+                <h:inputText id="busca" value="#{lojaController.busca}" maxlength="100"/>
+            </h:panelGroup>
+            <h:panelGroup layout="block">
+                <h:outputLabel for="categoria" value="Categoria"/>
+                <h:selectOneMenu id="categoria" value="#{lojaController.categoria}">
+                    <f:selectItem itemValue="" itemLabel="Todas"/>
+                    <f:selectItems value="#{lojaController.categorias}"/>
+                </h:selectOneMenu>
+            </h:panelGroup>
+            <h:commandButton value="Buscar" styleClass="botao"/>
+        </h:form>
+        <h:panelGroup layout="block" styleClass="painel" rendered="#{empty lojaController.catalogo}">
+            Nenhum produto encontrado.
+        </h:panelGroup>
+        <h:form styleClass="grade">
+            <ui:repeat value="#{lojaController.catalogo}" var="produto">
+                <article class="produto">
+                    <h:graphicImage value="#{produto.fotoLoja}" alt="#{produto.xprod}" rendered="#{not empty produto.fotoLoja}"/>
+                    <div class="produto-dados">
+                        <h:outputText styleClass="categoria" value="#{produto.categoriaLoja}" rendered="#{not empty produto.categoriaLoja}"/>
+                        <h2><h:outputText value="#{produto.xprod}"/></h2>
+                        <p class="preco"><h:outputText value="#{produto.precoVitrine}"><f:convertNumber type="currency" currencyCode="BRL" locale="pt_BR"/></h:outputText></p>
+                        <div class="acoes">
+                            <h:commandButton value="Comprar agora" action="#{lojaController.comprar(produto.id)}" styleClass="botao"/>
+                            <h:commandButton value="Adicionar ao carrinho" action="#{lojaController.adicionar(produto.id)}" styleClass="botao secundario"/>
+                        </div>
+                    </div>
+                </article>
+            </ui:repeat>
+        </h:form>
+    </ui:define>
+</ui:composition>

@@ -549,7 +549,7 @@ public class NFeEmissor {
             JSONObject json = new JSONObject(dados);
             validarRequisicaoTributaria(json);
             
-            String cStat = "";
+            String cStat = "000";
             String xMotivo = "";
             String dhRecbto = "";
             String nProt = "";
@@ -635,6 +635,9 @@ public class NFeEmissor {
                 ide.setFinNFe(jsonIde.getString("finNFe"));
                 ide.setIndFinal(jsonIde.getString("indFinal"));
                 ide.setIndPres(jsonIde.getString("indPres"));
+                if (jsonIde.has("indIntermed")) {
+                    ide.setIndIntermed(jsonIde.getString("indIntermed"));
+                }
                 ide.setProcEmi(jsonIde.getString("procEmi"));
                 ide.setVerProc(jsonIde.getString("verProc"));
                 
@@ -1162,10 +1165,11 @@ public class NFeEmissor {
                     }
                 } else {
                     // Retorno síncrono
+                    if (retorno.getProtNFe() != null && retorno.getProtNFe().getInfProt() != null) {
+                        cStat = retorno.getProtNFe().getInfProt().getCStat();
+                        xMotivo = retorno.getProtNFe().getInfProt().getXMotivo();
+                    }
                     RetornoUtil.validaSincrono(retorno);
-                    
-                    cStat = retorno.getProtNFe().getInfProt().getCStat();
-                    xMotivo = retorno.getProtNFe().getInfProt().getXMotivo();
                     
                     System.out.println("cStat: " + cStat + " - " + xMotivo);
                     
@@ -1188,8 +1192,10 @@ public class NFeEmissor {
             } catch (Exception e) {
                 System.out.println("Erro no envio para SEFAZ: " + e.getMessage());
                 e.printStackTrace();
-                cStat = "000";
-                xMotivo = e.getMessage();
+                if ("000".equals(cStat) || "100".equals(cStat)) {
+                    cStat = "000";
+                    xMotivo = e.getMessage();
+                }
             }
             
             enviarResposta(httpExchange, cStat, xMotivo, dhRecbto, nProt, chave, xml);

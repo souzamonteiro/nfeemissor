@@ -3,12 +3,7 @@
   <persistence-unit name="nfePU" transaction-type="RESOURCE_LOCAL">
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
     <class>com.souzamonteiro.nfe.model.Cliente</class>
-    <class>comcom.souzamonteiro.nfe.model.Configuracao</class>
-    <class>comcom.souzamonteiro.nfe.model.Empresa</class>
-    <class>comcom.souzamonteiro.nfe.model.ItemVenda</class>
-    <class>comcom.souzamonteiro.nfe.model.Produto</class>
     <class>com.souzamonteiro.nfe.model.Usuario</class>
-    <class>cocom.souzamonteiro.nfe.model.Venda</class>
     <class>com.souzamonteiro.nfe.model.VwItensVendaDetalhados</class>
     <class>com.souzamonteiro.nfe.model.VwProdutosAtivos</class>
     <class>com.souzamonteiro.nfe.model.Venda</class>
@@ -27,7 +22,7 @@
       <!-- Configurações do Hibernate -->
       <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL8Dialect"/>
       <property name="hibernate.hbm2ddl.auto" value="update"/>
-      <property name="hibernate.show_sql" value="true"/>
+      <property name="hibernate.show_sql" value="false"/>
       <property name="hibernate.format_sql" value="true"/>
       <!-- IMPORTANTE: Configurações para evitar problemas (como no projeto que funciona) -->
       <property name="hibernate.connection.autocommit" value="false"/>

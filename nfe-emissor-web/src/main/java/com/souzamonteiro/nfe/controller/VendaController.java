@@ -3,6 +3,7 @@ package com.souzamonteiro.nfe.controller;
 import com.souzamonteiro.nfe.dao.*;
 import com.souzamonteiro.nfe.model.*;
 import com.souzamonteiro.nfe.service.PixService;
+import com.souzamonteiro.nfe.service.LojaService;
 import com.souzamonteiro.nfe.service.TributacaoCalculator;
 import com.souzamonteiro.nfe.util.GeradorQRCodePix;
 
@@ -528,7 +529,15 @@ public class VendaController implements Serializable {
         venda.setValorTotal(total);
     }
     
+    private static final Object BLOQUEIO_EMISSAO = new Object();
+
     public void finalizarVenda() {
+        synchronized (BLOQUEIO_EMISSAO) {
+            finalizarVendaInterna();
+        }
+    }
+
+    private void finalizarVendaInterna() {
         if (venda.getClienteId() == null) {
             System.out.println("ERRO: Cliente é null");
             FacesContext.getCurrentInstance().addMessage(null,
@@ -625,48 +634,95 @@ public class VendaController implements Serializable {
             "Operação cancelada", "A venda foi descartada e o formulário foi fechado."));
     }
     
+    static void emitirPedidoLoja(Integer id, Integer operadorId) {
+        synchronized (BLOQUEIO_EMISSAO) {
+            LojaService loja = new LojaService();
+            VendaController emissor = new VendaController();
+            Configuracao config = emissor.configuracaoDAO.getConfiguracao();
+            Empresa empresa = emissor.empresaDAO.getEmpresa();
+            if (config == null || empresa == null || config.getPortaServidor() == null) {
+                throw new IllegalStateException("Configure a empresa e o serviço de emissão de NF-e.");
+            }
+            Venda pedido = loja.reservarEmissao(id, operadorId);
+            JSONObject nota;
+            try {
+                nota = emissor.construirJsonNFe(pedido, empresa, config);
+            } catch (RuntimeException e) {
+                loja.liberarEmissaoNaoEnviada(id, operadorId);
+                throw e;
+            }
+            try {
+                if (emissor.enviarNFe(pedido, config, nota)) {
+                    loja.registrarAutorizacao(pedido);
+                }
+            } catch (RejeicaoSemIntermediador e) {
+                loja.liberarEmissaoNaoEnviada(id, operadorId);
+                mensagemErroEmissao(e.getMessage());
+            } catch (IllegalStateException e) {
+                if (e.getCause() instanceof java.net.ConnectException) loja.liberarEmissaoNaoEnviada(id, operadorId);
+                throw e;
+            }
+        }
+    }
+
     private boolean emitirNFe(Venda venda) {
         try {
             Configuracao config = configuracaoDAO.getConfiguracao();
             Empresa empresa = empresaDAO.getEmpresa();
-            
             if (config == null || empresa == null) {
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, 
-                    "Erro", "Configure empresa e configurações antes de emitir NF-e."));
+                mensagemErroEmissao("Configure empresa e configurações antes de emitir NF-e.");
                 return false;
             }
-            
-            // Construir JSON para envio ao servidor de NF-e
-            JSONObject nfeJson = construirJsonNFe(venda, empresa, config);
-            
-            // Enviar para servidor de NF-e
-            String url = "http://localhost:" + config.getPortaServidor() + "/NFeAutorizacao";
-            String resposta = enviarParaServidor(url, nfeJson.toString());
-            
-            // Processar resposta
-            JSONObject respostaJson = new JSONObject(resposta);
-            String cStat = respostaJson.getString("cStat");
-            
-            if ("100".equals(cStat)) {
-                venda.setChaveNfe(respostaJson.getString("chave"));
-                venda.setProtocoloNfe(respostaJson.getString("nProt"));
-                return true;
-            } else {
-                FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, 
-                    "Erro NF-e", respostaJson.getString("xMotivo")));
-                return false;
-            }
-            
-        } catch (Exception e) {
-            FacesContext.getCurrentInstance().addMessage(null,
-                new FacesMessage(FacesMessage.SEVERITY_ERROR, 
-                "Erro", "Erro ao emitir NF-e: " + e.getMessage()));
+            return enviarNFe(venda, config, construirJsonNFe(venda, empresa, config));
+        } catch (RuntimeException e) {
+            mensagemErroEmissao(e.getMessage());
             return false;
         }
     }
-    
+
+    private boolean enviarNFe(Venda venda, Configuracao config, JSONObject nota) {
+        try {
+            String url = "http://localhost:" + config.getPortaServidor() + "/NFeAutorizacao";
+            JSONObject resposta = new JSONObject(enviarParaServidor(url, nota.toString()));
+            String status = resposta.optString("cStat");
+            String motivo = resposta.optString("xMotivo", "O emissor não confirmou a autorização.");
+            if ("100".equals(status)) {
+                String chave = resposta.optString("chave").replaceFirst("^NFe", "");
+                String protocolo = resposta.optString("nProt");
+                if (chave.matches("[0-9]{44}") && !protocolo.isEmpty()) {
+                    venda.setChaveNfe(chave);
+                    venda.setProtocoloNfe(protocolo);
+                    return true;
+                }
+                mensagemErroEmissao("A resposta da autorização não trouxe chave e protocolo válidos.");
+            } else if (venda.getPedidoLoja() != null && ("434".equals(status)
+                    || ("000".equals(status) && motivo.startsWith("434 - ")))) {
+                throw new RejeicaoSemIntermediador(motivo);
+            } else {
+                mensagemErroEmissao(motivo);
+            }
+        } catch (RejeicaoSemIntermediador e) {
+            throw e;
+        } catch (java.net.ConnectException e) {
+            if (venda.getPedidoLoja() != null) throw new IllegalStateException("Serviço de emissão indisponível.", e);
+            mensagemErroEmissao(e.getMessage());
+        } catch (Exception e) {
+            mensagemErroEmissao(e.getMessage());
+        }
+        return false;
+    }
+
+    private static class RejeicaoSemIntermediador extends RuntimeException {
+        RejeicaoSemIntermediador(String mensagem) {
+            super(mensagem);
+        }
+    }
+
+    private static void mensagemErroEmissao(String detalhe) {
+        FacesContext.getCurrentInstance().addMessage(null,
+            new FacesMessage(FacesMessage.SEVERITY_ERROR, "Erro ao emitir NF-e", detalhe));
+    }
+
     private JSONObject construirJsonNFe(Venda venda, Empresa empresa, Configuracao config) {
         JSONObject nfeJson = new JSONObject();
         JSONObject infNFe = new JSONObject();
@@ -686,7 +742,7 @@ public class VendaController implements Serializable {
         ide.put("serie", config.getSerieNfe().toString());
 
         // nNF deve ser string - CORREÇÃO AQUI
-        String nNFStr = config.getNumeroNfe().toString();
+        String nNFStr = venda.getNumeroNfe().toString();
         ide.put("nNF", nNFStr);
 
         // Formatar data no formato correto
@@ -694,15 +750,18 @@ public class VendaController implements Serializable {
         ide.put("dhEmi", sdf.format(venda.getDataVenda()));
 
         ide.put("tpNF", "1");
-        ide.put("idDest", "1");
+        boolean pedidoLoja = venda.getPedidoLoja() != null;
+        boolean outraUf = !empresa.getUf().equalsIgnoreCase(venda.getClienteId().getUf());
+        ide.put("idDest", pedidoLoja && outraUf ? "2" : "1");
         ide.put("cMunFG", empresa.getCmun());
         ide.put("tpImp", "1");
         ide.put("tpEmis", "1");
         ide.put("cDV", "6"); // Para homologação
         ide.put("tpAmb", config.getWebserviceAmbiente());
         ide.put("finNFe", config.getFinalidadeEmissao());
-        ide.put("indFinal", config.getConsumidorFinal());
-        ide.put("indPres", config.getPresencaComprador());
+        ide.put("indFinal", pedidoLoja ? "1" : config.getConsumidorFinal());
+        ide.put("indPres", pedidoLoja ? "2" : config.getPresencaComprador());
+        if (pedidoLoja) ide.put("indIntermed", "0");
         ide.put("procEmi", "0");
         ide.put("verProc", "1.0");
 
@@ -1040,7 +1099,7 @@ public class VendaController implements Serializable {
         JSONArray detPagArray = new JSONArray();
 
         JSONObject detPag = new JSONObject();
-        detPag.put("tPag", valorTexto(config.getTpagPadrao(), "01"));
+        detPag.put("tPag", venda.getPedidoLoja() == null ? valorTexto(config.getTpagPadrao(), "01") : "17");
         detPag.put("vPag", String.format(Locale.US, "%.2f", venda.getValorTotal()));
 
         detPagArray.put(detPag);
@@ -1174,8 +1233,7 @@ public class VendaController implements Serializable {
     private String enviarParaServidor(String urlString, String json) throws Exception {
         System.out.println("=== ENVIANDO PARA SERVIDOR NF-e ===");
         System.out.println("URL: " + urlString);
-        System.out.println("JSON Enviado:");
-        System.out.println(json);
+
         System.out.println("===================================");
 
         URL url = new URL(urlString);
@@ -1204,7 +1262,6 @@ public class VendaController implements Serializable {
                 while ((responseLine = br.readLine()) != null) {
                     errorResponse.append(responseLine.trim());
                 }
-                System.out.println("ERRO HTTP " + responseCode + ": " + errorResponse.toString());
                 throw new RuntimeException("HTTP Error: " + responseCode + " - " + errorResponse.toString());
             }
         }
@@ -1218,7 +1275,6 @@ public class VendaController implements Serializable {
             }
 
             System.out.println("Resposta do servidor:");
-            System.out.println(response.toString());
             System.out.println("===================================");
 
             return response.toString();

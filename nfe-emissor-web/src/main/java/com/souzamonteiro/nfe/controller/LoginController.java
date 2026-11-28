@@ -44,21 +44,26 @@ public class LoginController implements Serializable {
         try {
             // Buscar usuário no banco
             usuarioLogado = getUsuarioDAO().findByLogin(login);
-            System.out.println("Usuário por login: " + usuarioLogado);
+
             if (usuarioLogado == null) {
                 usuarioLogado = getUsuarioDAO().findByEmail(login);
-                System.out.println("Usuário por email: " + usuarioLogado);
+
             }
             
             // Verificar se usuário existe, está ativo e a senha está correta
             if (usuarioLogado != null && 
                 usuarioLogado.getAtivo() != null && 
                 usuarioLogado.getAtivo() &&
+                com.souzamonteiro.nfe.service.LojaService.equipe(usuarioLogado) &&
                 usuarioLogado.getSenha() != null && 
                 usuarioLogado.getSenha().equals(senha)) {
                 
                 System.out.println("Login bem sucedido para: " + usuarioLogado.getNome());
                 
+                javax.servlet.http.HttpServletRequest request =
+                    (javax.servlet.http.HttpServletRequest) FacesContext.getCurrentInstance().getExternalContext().getRequest();
+                if (request.getSession(false) != null) request.changeSessionId();
+
                 // Salvar usuário na sessão
                 FacesContext.getCurrentInstance().getExternalContext()
                     .getSessionMap().put("usuarioLogado", usuarioLogado);

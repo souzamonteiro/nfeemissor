@@ -66,18 +66,11 @@
         <filter-name>LoginFilter</filter-name>
         <url-pattern>/faces/*</url-pattern>
         <url-pattern>*.xhtml</url-pattern>
+        <url-pattern>/pdf/*</url-pattern>
         <dispatcher>REQUEST</dispatcher>
         <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
-    
-    <!-- Exceções para o filtro (páginas que não precisam de login) -->
-    <filter-mapping>
-        <filter-name>LoginFilter</filter-name>
-        <url-pattern>/login.xhtml</url-pattern>
-        <dispatcher>REQUEST</dispatcher>
-        <dispatcher>FORWARD</dispatcher>
-    </filter-mapping>
-    
+
     <!-- Error Pages -->
     <error-page>
         <error-code>500</error-code>

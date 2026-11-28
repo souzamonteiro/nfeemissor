@@ -1,0 +1,35 @@
+<ui:composition template="/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:ui="http://xmlns.jcp.org/jsf/facelets" xmlns:h="http://xmlns.jcp.org/jsf/html"
+    xmlns:p="http://primefaces.org/ui" xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:define name="content">
+        <h1>Pedidos da loja</h1>
+        <p>Confira o recebimento no banco antes de confirmar o Pix.</p>
+        <h:form id="pedidos">
+            <p:messages/>
+            <p:dataTable value="#{lojaController.pedidosEquipe}" var="pedido" paginator="true" rows="15" emptyMessage="Nenhum pedido na loja.">
+                <p:column headerText="Pedido">
+                    <h:outputText value="#{pedido.id}"/>
+                </p:column>
+                <p:column headerText="Cliente">
+                    <h:outputText value="#{pedido.clienteId.xnome}"/>
+                </p:column>
+                <p:column headerText="Valor">
+                    <h:outputText value="#{pedido.valorTotal}"><f:convertNumber type="currency" currencyCode="BRL" locale="pt_BR"/></h:outputText>
+                </p:column>
+                <p:column headerText="Situação">
+                    <h:outputText value="#{pedido.situacaoLoja}"/>
+                    <h:outputText value=" — NF-e #{pedido.numeroNfe}" rendered="#{not empty pedido.numeroNfe}"/>
+                </p:column>
+                <p:column headerText="Ações">
+                    <p:commandButton value="Confirmar Pix" action="#{lojaController.confirmar(pedido.id)}" update="@form"
+                        rendered="#{pedido.status eq 'AGUARDANDO_PIX'}"
+                        onclick="if (!window.confirm('Confirma que o Pix foi recebido no banco?')) return false;"/>
+                    <p:commandButton value="Emitir NF-e" action="#{lojaController.emitir(pedido.id)}" update="@form"
+                        rendered="#{pedido.status eq 'PIX_CONFIRMADO'}"/>
+                    <p:commandButton value="Registrar retirada" action="#{lojaController.retirar(pedido.id)}" update="@form"
+                        rendered="#{pedido.status eq 'EMITIDA' and empty pedido.retiradoEm}"/>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+    </ui:define>
+</ui:composition>

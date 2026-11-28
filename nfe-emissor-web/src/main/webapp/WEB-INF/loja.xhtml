@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html" xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+<h:head>
+    <title><ui:insert name="titulo">Loja virtual</ui:insert></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <h:outputStylesheet library="loja" name="loja.css"/>
+</h:head>
+<h:body>
+    <a class="atalho" href="#conteudo">Ir para o conteúdo</a>
+    <header class="barra">
+        <nav aria-label="Navegação da loja">
+            <h:link outcome="/loja/index.xhtml" styleClass="marca" value="Loja virtual"/>
+            <h:form styleClass="nav-acoes">
+                <h:commandLink value="Carrinho (#{lojaController.quantidadeCarrinho})" action="#{lojaController.abrirCarrinho}"/>
+                <h:link outcome="/loja/pedidos.xhtml" value="Minhas compras" rendered="#{lojaController.cliente}"/>
+                <h:commandLink value="Sair" action="#{lojaController.sair}" rendered="#{lojaController.cliente}"/>
+                <h:link outcome="/loja/entrar.xhtml" value="Entrar" rendered="#{not lojaController.cliente}"/>
+                <h:link outcome="/loja/cadastro.xhtml" value="Criar conta" rendered="#{not lojaController.cliente}"/>
+            </h:form>
+        </nav>
+    </header>
+    <main id="conteudo">
+        <h:messages styleClass="mensagens" errorClass="erro" infoClass="sucesso"/>
+        <ui:insert name="conteudo"/>
+    </main>
+</h:body>
+</html>

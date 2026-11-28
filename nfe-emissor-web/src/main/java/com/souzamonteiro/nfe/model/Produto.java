@@ -177,6 +177,31 @@ public class Produto implements Serializable {
         this.vuncom = vuncom;
     }
 
+    @Column(name = "publicado_loja")
+    private Boolean publicadoLoja;
+    @Column(name = "preco_loja", precision = 15, scale = 2)
+    private BigDecimal precoLoja;
+    @Column(name = "categoria_loja", length = 80)
+    private String categoriaLoja;
+    @Column(name = "foto_loja", length = 512)
+    private String fotoLoja;
+
+    public Boolean getPublicadoLoja() { return Boolean.TRUE.equals(publicadoLoja); }
+    public void setPublicadoLoja(Boolean publicadoLoja) { this.publicadoLoja = publicadoLoja; }
+    public BigDecimal getPrecoLoja() { return precoLoja; }
+    public void setPrecoLoja(BigDecimal precoLoja) { this.precoLoja = precoLoja; }
+    public BigDecimal getPrecoVitrine() { return precoLoja == null ? vuncom : precoLoja; }
+    public String getCategoriaLoja() { return categoriaLoja; }
+    public void setCategoriaLoja(String categoriaLoja) { this.categoriaLoja = categoriaLoja; }
+    public String getFotoLoja() {
+        if (fotoLoja == null) return null;
+        if (fotoLoja.startsWith("https://") || fotoLoja.matches("/resources/loja/[A-Za-z0-9_-]+\\.(png|jpg|webp)")) {
+            return fotoLoja;
+        }
+        return null;
+    }
+    public void setFotoLoja(String fotoLoja) { this.fotoLoja = fotoLoja; }
+
     public Integer getId() {
         return id;
     }

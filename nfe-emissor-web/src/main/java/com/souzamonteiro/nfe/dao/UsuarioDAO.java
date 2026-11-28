@@ -19,7 +19,7 @@ public class UsuarioDAO extends GenericDAO<Usuario> implements Serializable {
         EntityManager em = getEntityManager();
         try {
             TypedQuery<Usuario> query = em.createQuery(
-                "SELECT u FROM Usuario u WHERE u.ativo = true ORDER BY u.nome", 
+                "SELECT u FROM Usuario u WHERE u.ativo = true AND u.perfil <> 'CLIENTE' ORDER BY u.nome",
                 Usuario.class
             );
             return query.getResultList();

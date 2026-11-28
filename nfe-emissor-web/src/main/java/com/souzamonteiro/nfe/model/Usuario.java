@@ -60,6 +60,11 @@ public class Usuario implements Serializable {
     @Basic(optional = false)
     @Column(name = "perfil")
     private String perfil;
+    @Column(name = "loja_cliente_id", unique = true)
+    private Integer lojaClienteId;
+
+    public Integer getLojaClienteId() { return lojaClienteId; }
+    public void setLojaClienteId(Integer lojaClienteId) { this.lojaClienteId = lojaClienteId; }
     @Column(name = "ativo")
     private Boolean ativo;
     @Column(name = "data_criacao")
